@@ -1,21 +1,30 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Image, Text } from 'react-native';
+import { View, TextInput, StyleSheet, Image, Text, Alert } from 'react-native';
 import { Button } from '../../components/ui/Button';
+import { createRequestToken, validateRequestToken, createSession } from '../../services/authService';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    // Implémentation login TMDB à venir
-    console.log('Login:', { username, password });
+    try {
+      const requestToken = await createRequestToken();
+      await validateRequestToken(requestToken, username, password);
+      await createSession(requestToken);
+      Alert.alert('Succès', 'Connexion réussie!');
+      // Naviguer vers l'écran principal ou dashboard
+      navigation.navigate('Home');
+    } catch (error) {
+      Alert.alert('Erreur', 'Échec de la connexion. Vérifiez vos identifiants.');
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/images/logo.png')}
+          source={'../../assets/images/logo.png'}
           style={styles.logo}
         />
         <Text style={styles.title}>Cinemate</Text>
@@ -29,7 +38,7 @@ const LoginScreen = ({ navigation }) => {
           onChangeText={setUsername}
           autoCapitalize="none"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Mot de passe"

@@ -11,8 +11,8 @@ import SignupScreen from '../screens/auth/SignupScreen';
 // Main Screens
 import HomeScreen from '../screens/main/HomeScreen';
 import SearchScreen from '../screens/main/SearchScreen';
-import WatchlistScreen from '../screens/main/WatchlistScreen';
-import ProfileScreen from '../screens/main/ProfileScreen';
+//import WatchlistScreen from '../screens/main/WatchlistScreen';
+//import ProfileScreen from '../screens/main/ProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
