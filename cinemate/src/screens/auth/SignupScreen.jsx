@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, TextInput, StyleSheet, Text, ScrollView, Alert } from 'react-native';
 import { Button } from '../../components/ui/Button';
+import { signup } from '../../services/authService';
 
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -11,8 +12,20 @@ const SignupScreen = ({ navigation }) => {
   });
 
   const handleSignup = async () => {
-    // Implémentation signup TMDB à venir
-    console.log('Signup:', formData);
+    const { username, email, password, confirmPassword } = formData;
+
+    if (password !== confirmPassword) {
+      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    try {
+      await signup(username, email, password);
+      Alert.alert('Succès', 'Inscription réussie! Vous pouvez maintenant vous connecter.');
+      navigation.navigate('Login');
+    } catch (error) {
+      Alert.alert('Erreur', 'Échec de l\'inscription. Veuillez réessayer.');
+    }
   };
 
   return (

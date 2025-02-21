@@ -43,3 +43,14 @@ export const createSession = async (requestToken) => {
     throw error;
   }
 };
+
+export const signup = async (username, email, password) => {
+  try {
+    // Simuler l'inscription en enregistrant les informations localement
+    await AsyncStorage.setItem('user', JSON.stringify({ username, email, password }));
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de l\'inscription:', error);
+    throw error;
+  }
+};
