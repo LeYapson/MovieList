@@ -1,7 +1,7 @@
 // src/navigation/AppNavigator.jsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Auth Screens
@@ -11,13 +11,23 @@ import SignupScreen from '../screens/auth/SignupScreen';
 // Main Screens
 import HomeScreen from '../screens/main/HomeScreen';
 import SearchScreen from '../screens/main/SearchScreen';
-//import WatchlistScreen from '../screens/main/WatchlistScreen';
-//import ProfileScreen from '../screens/main/ProfileScreen';
+import WatchlistScreen from '../screens/main/WatchlistScreen';
+import ProfileScreen from '../screens/main/ProfileScreen';
 
-const Stack = createStackNavigator();
+// Stack pour l'authentification
+const AuthStack = createNativeStackNavigator();
+const AuthNavigator = () => {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Signup" component={SignupScreen} />
+    </AuthStack.Navigator>
+  );
+};
+
+// Bottom Tab pour la navigation principale
 const Tab = createBottomTabNavigator();
-
-const MainTabNavigator = () => {
+const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -28,68 +38,57 @@ const MainTabNavigator = () => {
         tabBarStyle: {
           backgroundColor: '#fff',
         },
-      }}>
+        // Vous pouvez ajouter des icônes ici plus tard
+        tabBarActiveTintColor: '#2196F3',
+        tabBarInactiveTintColor: 'gray',
+      }}
+    >
       <Tab.Screen 
-        name="Home" 
+        name="HomeTab" 
         component={HomeScreen} 
         options={{
-          title: 'Accueil'
+          title: 'Accueil',
         }}
       />
       <Tab.Screen 
-        name="Search" 
+        name="SearchTab" 
         component={SearchScreen}
         options={{
-          title: 'Rechercher'
+          title: 'Recherche',
         }}
       />
       <Tab.Screen 
-        name="Watchlist" 
+        name="WatchlistTab" 
         component={WatchlistScreen}
         options={{
-          title: 'Ma Liste'
+          title: 'Ma Liste',
         }}
       />
       <Tab.Screen 
-        name="Profile" 
+        name="ProfileTab" 
         component={ProfileScreen}
         options={{
-          title: 'Profil'
+          title: 'Profil',
         }}
       />
     </Tab.Navigator>
   );
 };
 
+// Stack principal de l'application
+const RootStack = createNativeStackNavigator();
 const AppNavigator = () => {
-  const isAuthenticated = false; // À remplacer par votre logique d'auth
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
-          // Stack Auth
-          <>
-            <Stack.Screen 
-              name="Login" 
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen 
-              name="Signup" 
-              component={SignupScreen}
-              options={{ headerShown: false }}
-            />
-          </>
+          <RootStack.Screen name="Auth" component={AuthNavigator} />
         ) : (
-          // Stack Main
-          <Stack.Screen
-            name="MainApp"
-            component={MainTabNavigator}
-            options={{ headerShown: false }}
-          />
+          <RootStack.Screen name="Main" component={TabNavigator} />
         )}
-      </Stack.Navigator>
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 };

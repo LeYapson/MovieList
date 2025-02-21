@@ -1,22 +1,28 @@
-import React, { useState } from 'react';
+// src/screens/auth/LoginScreen.jsx
+import React, { useState, useContext } from 'react';
 import { View, TextInput, StyleSheet, Image, Text, Alert } from 'react-native';
 import { Button } from '../../components/ui/Button';
-import { createRequestToken, validateRequestToken, createSession } from '../../services/authService';
+import { AuthContext } from '../../context/AuthContext'; // Nous allons créer ce contexte
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn } = useContext(AuthContext); // Utilisation du contexte d'authentification
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
     try {
-      const requestToken = await createRequestToken();
-      await validateRequestToken(requestToken, username, password);
-      await createSession(requestToken);
-      Alert.alert('Succès', 'Connexion réussie!');
-      // Naviguer vers l'écran principal ou dashboard
-      navigation.navigate('Home');
+      await signIn(username, password);
+      // La navigation sera gérée automatiquement par le contexte
     } catch (error) {
-      Alert.alert('Erreur', 'Échec de la connexion. Vérifiez vos identifiants.');
+      Alert.alert(
+        'Erreur de connexion',
+        'Identifiants incorrects ou problème de connexion'
+      );
     }
   };
 
@@ -24,8 +30,10 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={'../../assets/images/logo.png'}
+          // Correction du chemin de l'image
+          source={require('../../assets/images/logo.png')}
           style={styles.logo}
+          resizeMode="contain"
         />
         <Text style={styles.title}>Cinemate</Text>
       </View>
@@ -37,6 +45,8 @@ const LoginScreen = ({ navigation }) => {
           value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="next"
         />
 
         <TextInput
@@ -45,6 +55,8 @@ const LoginScreen = ({ navigation }) => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          returnKeyType="done"
+          onSubmitEditing={handleLogin}
         />
 
         <Button
@@ -92,6 +104,8 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
 });
 
