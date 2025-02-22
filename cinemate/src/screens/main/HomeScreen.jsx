@@ -53,7 +53,6 @@ const HomeScreen = ({ navigation }) => {
     );
   }
 
-  
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: theme.background }]}
