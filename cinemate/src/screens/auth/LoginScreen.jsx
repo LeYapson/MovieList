@@ -7,6 +7,7 @@ const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  // Fonction pour gérer la connexion
   const handleLogin = async () => {
     try {
       const requestToken = await createRequestToken();
