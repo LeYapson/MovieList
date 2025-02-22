@@ -8,11 +8,27 @@ const LoginScreen = ({ navigation }) => {
  const [username, setUsername] = useState('');
  const [password, setPassword] = useState('');
 
+<<<<<<< HEAD
  const handleLogin = async () => {
    if (!username || !password) {
      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
      return;
    }
+=======
+  // Fonction pour gérer la connexion
+  const handleLogin = async () => {
+    try {
+      const requestToken = await createRequestToken();
+      await validateRequestToken(requestToken, username, password);
+      await createSession(requestToken);
+      Alert.alert('Succès', 'Connexion réussie!');
+      // Naviguer vers l'écran principal ou dashboard
+      navigation.navigate('Home');
+    } catch (error) {
+      Alert.alert('Erreur', 'Échec de la connexion. Vérifiez vos identifiants.');
+    }
+  };
+>>>>>>> origin/theau
 
    try {
      const requestToken = await createRequestToken();
