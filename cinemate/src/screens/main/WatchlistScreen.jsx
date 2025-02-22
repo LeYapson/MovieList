@@ -9,4 +9,5 @@ const WatchlistScreen = () => {
   );
 };
 
+
 export default WatchlistScreen;
