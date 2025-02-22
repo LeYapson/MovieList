@@ -19,3 +19,4 @@ export const lightTheme = {
     tabBar: '#1E1E1E',
     error: '#FF5252'
   };
+  
