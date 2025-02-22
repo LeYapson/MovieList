@@ -1,11 +1,13 @@
 // src/screens/main/SettingsScreen.jsx
 import React from 'react';
-import { View, Text, StyleSheet, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, Switch, Alert, ScrollView } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { removeSessionId } from '../../services/storageService';
+import { useTheme } from '../../context/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const SettingsScreen = ({ navigation }) => {
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState(true);
 
   const handleLogout = async () => {
@@ -22,52 +24,70 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Préférences</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primary }]}>
+          Préférences
+        </Text>
         
-        <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Mode sombre</Text>
+        <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+          <View style={styles.settingHeader}>
+            <Ionicons name="moon" size={24} color={theme.text} />
+            <Text style={[styles.settingLabel, { color: theme.text }]}>
+              Mode sombre
+            </Text>
+          </View>
           <Switch
             value={isDarkMode}
-            onValueChange={setIsDarkMode}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={isDarkMode ? '#2196F3' : '#f4f3f4'}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#767577', true: theme.primary }}
+            thumbColor={isDarkMode ? theme.primary : '#f4f3f4'}
           />
         </View>
 
-        <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Notifications</Text>
+        <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+          <View style={styles.settingHeader}>
+            <Ionicons name="notifications" size={24} color={theme.text} />
+            <Text style={[styles.settingLabel, { color: theme.text }]}>
+              Notifications
+            </Text>
+          </View>
           <Switch
             value={isNotificationsEnabled}
             onValueChange={setIsNotificationsEnabled}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={isNotificationsEnabled ? '#2196F3' : '#f4f3f4'}
+            trackColor={{ false: '#767577', true: theme.primary }}
+            thumbColor={isNotificationsEnabled ? theme.primary : '#f4f3f4'}
           />
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Application</Text>
-        <Text style={styles.versionText}>Version 1.0.0</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primary }]}>
+          Application
+        </Text>
+        <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+          <Text style={[styles.label, { color: theme.text }]}>Version</Text>
+          <Text style={[styles.value, { color: theme.textSecondary }]}>1.0.0</Text>
+        </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Compte</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primary }]}>
+          Compte
+        </Text>
         <Button
           title="Se déconnecter"
           onPress={handleLogout}
           variant="secondary"
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
   },
   section: {
@@ -77,23 +97,28 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#2196F3',
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    padding: 15,
+    borderRadius: 12,
     marginBottom: 10,
+  },
+  settingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   settingLabel: {
     fontSize: 16,
   },
-  versionText: {
-    color: '#666',
-    fontSize: 14,
+  label: {
+    fontSize: 16,
+  },
+  value: {
+    fontSize: 16,
   },
 });
 

@@ -1,14 +1,17 @@
 // src/screens/main/HomeScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import MovieList from '../../components/movies/MovieList';
 import { getPopularMovies, getNowPlayingMovies, getTopRatedMovies } from '../../services/movieService';
+import { useTheme } from '../../context/ThemeContext';
 
 const HomeScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const [popularMovies, setPopularMovies] = useState([]);
   const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadMovies();
@@ -33,34 +36,51 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    loadMovies().finally(() => setRefreshing(false));
+  }, []);
+
   const handleMoviePress = (movie) => {
     navigation.navigate('MovieDetail', { movieId: movie.id });
   };
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={[styles.container, { backgroundColor: theme.background }]}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.primary}
+        />
+      }
+    >
       <MovieList
         title="Films Populaires"
         movies={popularMovies}
         onMoviePress={handleMoviePress}
+        theme={theme}
       />
       <MovieList
-        title="En ce moment"
+        title="À l'affiche"
         movies={nowPlayingMovies}
         onMoviePress={handleMoviePress}
+        theme={theme}
       />
       <MovieList
         title="Les mieux notés"
         movies={topRatedMovies}
         onMoviePress={handleMoviePress}
+        theme={theme}
       />
     </ScrollView>
   );
@@ -69,7 +89,6 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   loadingContainer: {
     flex: 1,
