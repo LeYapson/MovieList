@@ -65,3 +65,37 @@ export const signup = async (username, email, password) => {
     }
   );
 };
+
+export const createAccount = async (username, email, password) => {
+  try {
+    const tokenResponse = await axios.get(
+      `${BASE_URL}/authentication/token/new?api_key=${API_KEY}`
+    );
+    const requestToken = tokenResponse.data.request_token;
+ 
+    const accountResponse = await axios.post(
+      `${BASE_URL}/account/create?api_key=${API_KEY}`,
+      {
+        username,
+        password,
+        email,
+        request_token: requestToken
+      }
+    );
+ 
+    console.log('API Response:', accountResponse.data); // Log de la réponse
+    return accountResponse.data;
+ 
+  } catch (error) {
+    console.log('API Error:', error.response?.data); // Log de l'erreur
+    console.log('Full Error:', error); // Log de l'erreur complète
+    
+    if (error.response) {
+      // Afficher les détails de l'erreur de l'API
+      throw new Error(
+        `Erreur API: ${JSON.stringify(error.response.data, null, 2)}`
+      );
+    }
+    throw error;
+  }
+ };
