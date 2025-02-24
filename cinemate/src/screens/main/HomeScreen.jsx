@@ -1,6 +1,14 @@
 // src/screens/main/HomeScreen.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { 
+  View, 
+  FlatList, 
+  StyleSheet, 
+  ActivityIndicator, 
+  Dimensions,
+  Animated,
+  Easing
+} from 'react-native';
 import MovieList from '../../components/movies/MovieList';
 import tmdbService from '../../services/tmdbService';
 import { useTheme } from '../../context/ThemeContext';
@@ -16,43 +24,120 @@ const CATEGORIES = [
 ];
 
 const WINDOW_HEIGHT = Dimensions.get('window').height;
+const VISIBLE_CATEGORIES_COUNT = 3;
+
+// Composant de loader avec animation de pulsation
+const PulseLoader = ({ color }) => {
+  const pulseAnim = useRef(new Animated.Value(0.8)).current;
+  
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.8,
+          duration: 400,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, []);
+  
+  return (
+    <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+      <ActivityIndicator size="large" color={color} />
+    </Animated.View>
+  );
+};
 
 const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [moviesByCategory, setMoviesByCategory] = useState({});
-  const [loadingCategories, setLoadingCategories] = useState(new Set(['popular']));
-  const [visibleCategories, setVisibleCategories] = useState(new Set(['popular']));
+  const [loadingCategories, setLoadingCategories] = useState(new Set([]));
+  const [initialLoad, setInitialLoad] = useState(true);
   const flatListRef = useRef(null);
   const scrollPosition = useRef(0);
+  const lastVisibleItems = useRef([]);
+  
+  // Références pour les animations
+  const fadeAnims = useRef({});
+  const slideAnims = useRef({});
+  const scaleAnims = useRef({});
+  
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 20,
     minimumViewTime: 300,
   });
 
-  // Charger la catégorie populaire au démarrage
+  // Initialiser les animations pour une catégorie
+  const initAnimations = (categoryId) => {
+    if (!fadeAnims.current[categoryId]) {
+      fadeAnims.current[categoryId] = new Animated.Value(0);
+      slideAnims.current[categoryId] = new Animated.Value(30);
+      scaleAnims.current[categoryId] = new Animated.Value(0.95);
+    }
+  };
+
+  // Déclencher les animations pour une catégorie
+  const animateCategory = (categoryId) => {
+    initAnimations(categoryId);
+    
+    Animated.parallel([
+      Animated.timing(fadeAnims.current[categoryId], {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnims.current[categoryId], {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnims.current[categoryId], {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      })
+    ]).start();
+  };
+
+  // Chargement initial uniquement de la première catégorie
   useEffect(() => {
-    loadCategory('popular');
-  }, []);
+    if (initialLoad) {
+      loadCategory('popular');
+      setInitialLoad(false);
+    }
+  }, [initialLoad]);
 
   const loadCategory = async (categoryId) => {
     if (moviesByCategory[categoryId] || loadingCategories.has(categoryId)) return;
 
     try {
       setLoadingCategories(prev => new Set([...prev, categoryId]));
-      const category = CATEGORIES.find(c => c.id === categoryId);
-      const response = await category.fetch();
+      initAnimations(categoryId);
       
-      // Enregistrer la position de défilement actuelle
+      const category = CATEGORIES.find(c => c.id === categoryId);
+      
+      // Enregistrer position actuelle
       if (flatListRef.current) {
         flatListRef.current.getScrollOffset && flatListRef.current.getScrollOffset((offset) => {
           scrollPosition.current = offset;
         });
       }
       
+      const response = await category.fetch();
+      
       setMoviesByCategory(prev => ({
         ...prev,
         [categoryId]: response.results
       }));
+      
+      // Déclencher l'animation
+      animateCategory(categoryId);
     } catch (error) {
       console.error(`Erreur chargement catégorie ${categoryId}:`, error);
     } finally {
@@ -64,7 +149,7 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Restaurer la position de défilement après le rendu
+  // Restaurer position après mise à jour
   useEffect(() => {
     if (flatListRef.current && scrollPosition.current > 0) {
       setTimeout(() => {
@@ -77,34 +162,56 @@ const HomeScreen = ({ navigation }) => {
   }, [moviesByCategory]);
 
   const onScroll = (event) => {
-    // Sauvegarder la position de défilement actuelle
     scrollPosition.current = event.nativeEvent.contentOffset.y;
   };
 
+  // Gérer les éléments visibles
   const onViewableItemsChanged = React.useCallback(({ viewableItems }) => {
-    const newVisibleCategories = new Set(viewableItems.map(item => item.item.id));
-    setVisibleCategories(newVisibleCategories);
-
-    // Charger les catégories visibles
-    viewableItems.forEach(({ item }) => {
-      loadCategory(item.id);
+    const visibleIds = viewableItems.map(item => item.item.id);
+    lastVisibleItems.current = visibleIds;
+    
+    // Limiter aux VISIBLE_CATEGORIES_COUNT catégories
+    const categoriesToLoad = visibleIds.slice(0, VISIBLE_CATEGORIES_COUNT);
+    
+    categoriesToLoad.forEach(id => {
+      loadCategory(id);
     });
-
-    // Ne pas décharger les catégories pour éviter les problèmes de recalcul de taille
-    // La gestion de la mémoire peut être améliorée par d'autres moyens si nécessaire
-  }, [moviesByCategory]);
+    
+    // Décharger catégories non visibles (sauf 'popular')
+    Object.keys(moviesByCategory).forEach(id => {
+      if (id !== 'popular' && !visibleIds.includes(id) && 
+          !loadingCategories.has(id)) {
+        setMoviesByCategory(prev => {
+          const newState = { ...prev };
+          delete newState[id];
+          return newState;
+        });
+      }
+    });
+  }, [moviesByCategory, loadingCategories]);
 
   const renderCategory = ({ item }) => {
     const isLoading = loadingCategories.has(item.id);
     const movies = moviesByCategory[item.id] || [];
-    const isVisible = visibleCategories.has(item.id);
-
-    // Utiliser un placeholder avec une hauteur fixe pour maintenir la taille
+    const isVisible = lastVisibleItems.current.includes(item.id);
+    
+    // Initialiser animations si nécessaire
+    initAnimations(item.id);
+    
+    // Créer des styles animés
+    const animatedStyle = {
+      opacity: fadeAnims.current[item.id],
+      transform: [
+        { translateY: slideAnims.current[item.id] },
+        { scale: scaleAnims.current[item.id] }
+      ]
+    };
+    
     return (
-      <View style={styles.categoryContainer}>
+      <Animated.View style={[styles.categoryContainer, animatedStyle]}>
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
+            <PulseLoader color={theme.primary} />
           </View>
         ) : (
           <View style={styles.categoryContent}>
@@ -116,16 +223,15 @@ const HomeScreen = ({ navigation }) => {
                 theme={theme}
               />
             ) : (
-              // Placeholder pour maintenir la taille
               <View style={styles.placeholderContainer} />
             )}
           </View>
         )}
-      </View>
+      </Animated.View>
     );
   };
 
-  return (
+  return (  
     <FlatList
       ref={flatListRef}
       data={CATEGORIES}
@@ -134,14 +240,14 @@ const HomeScreen = ({ navigation }) => {
       style={[styles.container, { backgroundColor: theme.background }]}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig.current}
-      removeClippedSubviews={false} // Changé à false pour éviter les problèmes de recalcul
-      maxToRenderPerBatch={3}
+      removeClippedSubviews={false}
+      maxToRenderPerBatch={2}
       windowSize={5}
-      initialNumToRender={2}
+      initialNumToRender={1}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
-      maintainVisibleContentPosition={{ // Aide à maintenir la position de défilement
+      maintainVisibleContentPosition={{ 
         minIndexForVisible: 0,
       }}
     />
@@ -153,11 +259,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingVertical: -10,
-    marginTop: -290
+    paddingVertical: 10,
   },
   categoryContainer: {
-    height: 290, // Hauteur fixe pour éviter les recalculs
+    height: 290,
+    marginBottom: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   categoryContent: {
     flex: 1,
