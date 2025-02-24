@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import MovieDetailScreen from '../screens/main/MovieDetailScreen';
+
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -122,15 +124,12 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName={initialRoute}
-        screenOptions={{ 
-          headerShown: false,
-          animation: 'slide_from_right',
-          contentStyle: { backgroundColor: theme.background }
-        }}
+        screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="MovieDetail" component={MovieDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
