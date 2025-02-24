@@ -1,14 +1,6 @@
 // src/screens/main/HomeScreen.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  Dimensions,
-  Animated,
-  Easing
-} from 'react-native';
+import { View , FlatList , StyleSheet , ActivityIndicator , Dimensions , Animated , Easing } from 'react-native';
 import MovieList from '../../components/movies/MovieList';
 import tmdbService from '../../services/tmdbService';
 import { useTheme } from '../../context/ThemeContext';

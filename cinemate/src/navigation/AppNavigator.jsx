@@ -6,7 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import MovieDetailScreen from '../screens/main/MovieDetailScreen';
-
+import ActorDetailScreen from '../screens/main/ActorDetailScreen';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -130,6 +130,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="MovieDetail" component={MovieDetailScreen} />
+        <Stack.Screen name="ActorDetail" component={ActorDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

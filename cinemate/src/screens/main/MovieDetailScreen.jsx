@@ -104,7 +104,11 @@ const MovieDetailScreen = ({ route, navigation }) => {
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Distribution</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {cast.map(actor => (
-            <View key={actor.id} style={styles.actorCard}>
+            <TouchableOpacity 
+              key={actor.id} 
+              style={styles.actorCard}
+              onPress={() => navigation.navigate('ActorDetail', { actorId: actor.id })}
+            >
               <Image
                 source={{ 
                   uri: actor.profile_path 
@@ -119,7 +123,7 @@ const MovieDetailScreen = ({ route, navigation }) => {
               <Text style={[styles.character, { color: theme.textSecondary }]}>
                 {actor.character}
               </Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
