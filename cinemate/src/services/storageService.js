@@ -18,12 +18,15 @@ export const storeSessionId = async (sessionId) => {
 
 export const getSessionId = async () => {
   try {
-    return await AsyncStorage.getItem(SESSION_ID_KEY);
+    const sessionId = await AsyncStorage.getItem('session_id');
+    console.log('Recovered Session ID:', sessionId); // Log pour vérifier le sessionId récupéré
+    return sessionId;
   } catch (error) {
     console.error('Erreur récupération sessionId:', error);
     return null;
   }
 };
+
 
 export const removeSessionId = async () => {
   try {
