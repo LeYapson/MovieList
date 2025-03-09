@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Button } from 'react-native';
+import { View, ScrollView, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Button, Alert} from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import tmdbService from '../../services/tmdbService';
