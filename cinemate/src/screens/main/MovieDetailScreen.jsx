@@ -1,10 +1,10 @@
 // src/screens/main/MovieDetailScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { View , ScrollView , Image , Text , StyleSheet , ActivityIndicator , TouchableOpacity } from 'react-native';
+import { View, ScrollView, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import tmdbService from '../../services/tmdbService';
-
+import { getSessionId, isLoggedIn } from '../../services/storageService';
 
 const MovieDetailScreen = ({ route, navigation }) => {
   const { movieId } = route.params;
@@ -12,10 +12,37 @@ const MovieDetailScreen = ({ route, navigation }) => {
   const [movie, setMovie] = useState(null);
   const [cast, setCast] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isWatchlist, setIsWatchlist] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
 
+  // Vérifier si l'utilisateur est connecté
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await isLoggedIn();
+        setUserLoggedIn(loggedIn);
+        
+        if (loggedIn) {
+          const storedSessionId = await getSessionId();
+          setSessionId(storedSessionId);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la vérification du statut de connexion:", err);
+      }
+    };
+    
+    checkLoginStatus();
+  }, []);
+
+  // Charger les détails du film et vérifier s'il est en favori
   useEffect(() => {
     loadMovieDetails();
-  }, [movieId]);
+    if (sessionId) {
+      checkMovieStatus();
+    }
+  }, [movieId, sessionId]);
 
   const loadMovieDetails = async () => {
     try {
@@ -29,6 +56,77 @@ const MovieDetailScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error(error);
       setIsLoading(false);
+    }
+  };
+
+  // Vérifier si le film est en favori ou dans la watchlist
+  const checkMovieStatus = async () => {
+    if (!sessionId) return;
+    
+    try {
+      // Récupérer la liste des favoris
+      const response = await tmdbService.getFavoriteMovies(null, sessionId);
+      const favorites = response.results || [];
+      setIsFavorite(favorites.some(movie => movie.id === movieId));
+      
+      // Récupérer la watchlist
+      const watchlistResponse = await tmdbService.getWatchlist(null, sessionId);
+      const watchlist = watchlistResponse.results || [];
+      setIsWatchlist(watchlist.some(movie => movie.id === movieId));
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut du film:', error);
+    }
+  };
+
+  // Gérer l'ajout/suppression des favoris
+  const handleToggleFavorite = async () => {
+    if (!userLoggedIn) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter ce film à vos favoris.', [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Se connecter', onPress: () => navigation.navigate('Login') }
+      ]);
+      return;
+    }
+
+    try {
+      await tmdbService.toggleFavorite(null, sessionId, movieId, !isFavorite);
+      setIsFavorite(!isFavorite);
+      
+      Alert.alert(
+        'Succès', 
+        isFavorite 
+          ? 'Film retiré de vos favoris' 
+          : 'Film ajouté à vos favoris'
+      );
+    } catch (error) {
+      console.error('Erreur lors de la modification des favoris:', error);
+      Alert.alert('Erreur', 'Impossible de modifier vos favoris.');
+    }
+  };
+
+  // Gérer l'ajout/suppression de la watchlist
+  const handleToggleWatchlist = async () => {
+    if (!userLoggedIn) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter ce film à votre liste.', [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Se connecter', onPress: () => navigation.navigate('Login') }
+      ]);
+      return;
+    }
+
+    try {
+      await tmdbService.toggleWatchlist(null, sessionId, movieId, !isWatchlist);
+      setIsWatchlist(!isWatchlist);
+      
+      Alert.alert(
+        'Succès', 
+        isWatchlist 
+          ? 'Film retiré de votre liste' 
+          : 'Film ajouté à votre liste'
+      );
+    } catch (error) {
+      console.error('Erreur lors de la modification de la watchlist:', error);
+      Alert.alert('Erreur', 'Impossible de modifier votre liste.');
     }
   };
 
@@ -59,10 +157,40 @@ const MovieDetailScreen = ({ route, navigation }) => {
       />
 
       <View style={styles.infoContainer}>
-        <Text style={[styles.title, { color: theme.text }]}>{movie.title}</Text>
-        <Text style={[styles.year, { color: theme.textSecondary }]}>
-          {new Date(movie.release_date).getFullYear()}
-        </Text>
+        {/* Titre et année */}
+        <View style={styles.titleContainer}>
+          <View style={styles.titleWrapper}>
+            <Text style={[styles.title, { color: theme.text }]}>{movie.title}</Text>
+            <Text style={[styles.year, { color: theme.textSecondary }]}>
+              {new Date(movie.release_date).getFullYear()}
+            </Text>
+          </View>
+          
+          {/* Boutons d'action */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              onPress={handleToggleFavorite}
+              style={[styles.actionButton, { backgroundColor: theme.card }]}
+            >
+              <Ionicons 
+                name={isFavorite ? "heart" : "heart-outline"} 
+                size={24} 
+                color={isFavorite ? "#FF6B6B" : theme.text} 
+              />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={handleToggleWatchlist}
+              style={[styles.actionButton, { backgroundColor: theme.card }]}
+            >
+              <Ionicons 
+                name={isWatchlist ? "bookmark" : "bookmark-outline"} 
+                size={24} 
+                color={isWatchlist ? theme.primary : theme.text} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Genres */}
         <View style={styles.genresContainer}>
@@ -153,6 +281,16 @@ const styles = StyleSheet.create({
   infoContainer: {
     padding: 20,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  titleWrapper: {
+    flex: 1,
+    marginRight: 10,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -161,6 +299,16 @@ const styles = StyleSheet.create({
   year: {
     fontSize: 18,
     marginBottom: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    padding: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   genresContainer: {
     flexDirection: 'row',
