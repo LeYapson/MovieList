@@ -313,7 +313,20 @@ const tmdbService = {
       console.error(`Erreur lors de la récupération des images de la personne ${personId}:`, error);
       throw error;
     }
-  }
-};
+  },
+
+  // recuperer les videos d'un film
+  getMovieVideos: async (movieId) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/movie/${movieId}/videos`, {
+        params: { api_key: API_KEY }
+      });
+      return response.data.results;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des vidéos du film:', error);
+      throw error;
+    }
+},
+  };
 
 export default tmdbService;
