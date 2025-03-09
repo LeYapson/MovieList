@@ -1,10 +1,9 @@
-// src/screens/main/MovieDetailScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { View , ScrollView , Image , Text , StyleSheet , ActivityIndicator , TouchableOpacity } from 'react-native';
+import { View, ScrollView, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Button } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import tmdbService from '../../services/tmdbService';
-
+import { WebView } from 'react-native-webview';
 
 const MovieDetailScreen = ({ route, navigation }) => {
   const { movieId } = route.params;
@@ -12,6 +11,8 @@ const MovieDetailScreen = ({ route, navigation }) => {
   const [movie, setMovie] = useState(null);
   const [cast, setCast] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [trailerUrl, setTrailerUrl] = useState(null);
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
 
   useEffect(() => {
     loadMovieDetails();
@@ -19,16 +20,29 @@ const MovieDetailScreen = ({ route, navigation }) => {
 
   const loadMovieDetails = async () => {
     try {
-      const [movieData, credits] = await Promise.all([
+      const [movieData, credits, videos] = await Promise.all([
         tmdbService.getMovieDetails(movieId),
-        tmdbService.getMovieCredits(movieId)
+        tmdbService.getMovieCredits(movieId),
+        tmdbService.getMovieVideos(movieId)
       ]);
       setMovie(movieData);
       setCast(credits.cast.slice(0, 10)); // Les 10 premiers acteurs
+      const trailer = videos.find(video => video.type === 'Trailer');
+      if (trailer) {
+        setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}`);
+      }
       setIsLoading(false);
     } catch (error) {
       console.error(error);
       setIsLoading(false);
+    }
+  };
+
+  const handlePlayTrailer = () => {
+    if (trailerUrl) {
+      setShowTrailerModal(true);
+    } else {
+      Alert.alert('Trailer non disponible', 'Aucun trailer trouvé pour ce film.');
     }
   };
 
@@ -44,20 +58,17 @@ const MovieDetailScreen = ({ route, navigation }) => {
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header avec bouton retour */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={[styles.backButton, { backgroundColor: theme.card }]}
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
-
-      {/* Poster et infos principales */}
-      <Image
-        source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
-        style={styles.poster}
-      />
-
+        <Image
+          source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
+          style={styles.poster}
+        />
       <View style={styles.infoContainer}>
         <Text style={[styles.title, { color: theme.text }]}>{movie.title}</Text>
         <Text style={[styles.year, { color: theme.textSecondary }]}>
@@ -66,9 +77,9 @@ const MovieDetailScreen = ({ route, navigation }) => {
 
         {/* Genres */}
         <View style={styles.genresContainer}>
-          {movie.genres.map(genre => (
-            <View 
-              key={genre.id} 
+          {movie.genres && movie.genres.map(genre => (
+            <View
+              key={genre.id}
               style={[styles.genreTag, { backgroundColor: theme.primary }]}
             >
               <Text style={[styles.genreText, { color: '#fff' }]}>
@@ -100,18 +111,26 @@ const MovieDetailScreen = ({ route, navigation }) => {
           {movie.overview}
         </Text>
 
+        {/* Play Trailer */}
+        <TouchableOpacity
+          style={{ backgroundColor: theme.primary, padding: 12, borderRadius: 8, alignItems: 'center' }}
+          onPress={handlePlayTrailer}
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Jouer le Trailer</Text>
+        </TouchableOpacity>
+
         {/* Distribution */}
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Distribution</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {cast.map(actor => (
-            <TouchableOpacity 
-              key={actor.id} 
+            <TouchableOpacity
+              key={actor.id}
               style={styles.actorCard}
               onPress={() => navigation.navigate('ActorDetail', { actorId: actor.id })}
             >
               <Image
-                source={{ 
-                  uri: actor.profile_path 
+                source={{
+                  uri: actor.profile_path
                     ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
                     : 'https://via.placeholder.com/185x278'
                 }}
@@ -127,6 +146,24 @@ const MovieDetailScreen = ({ route, navigation }) => {
           ))}
         </ScrollView>
       </View>
+
+      {/* Trailer Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showTrailerModal}
+        onRequestClose={() => setShowTrailerModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <WebView
+            source={{ uri: trailerUrl }}
+            style={{ flex: 1 }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+          />
+          <Button title="Fermer" onPress={() => setShowTrailerModal(false)} />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -216,7 +253,11 @@ const styles = StyleSheet.create({
   },
   character: {
     fontSize: 12,
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
 });
 
 export default MovieDetailScreen;
