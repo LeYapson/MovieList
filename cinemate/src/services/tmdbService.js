@@ -72,6 +72,16 @@ const tmdbService = {
     return response.data;
   },
   
+  getMovieWatchProviders: async (movieId) => {
+    try {
+      const response = await api.get(`/movie/${movieId}/watch/providers`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des plateformes pour le film ${movieId}:`, error);
+      return { results: {} };
+    }
+  }, 
+
   // Obtenir les films favoris de l'utilisateur
   getFavoriteMovies: async (accountId, sessionId, page = 1) => {
     try {

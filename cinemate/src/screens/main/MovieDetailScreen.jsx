@@ -1,9 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Button, Alert} from 'react-native';
+// src/screens/main/MovieDetailScreen.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  ScrollView, 
+  Image, 
+  Text, 
+  StyleSheet, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Modal, 
+  Button, 
+  Alert,
+  NativeModules,
+  Dimensions,
+  Animated
+} from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import tmdbService from '../../services/tmdbService';
-import { WebView } from 'react-native-webview';import { getSessionId, isLoggedIn } from '../../services/storageService';
+import { WebView } from 'react-native-webview';
+import { getSessionId, isLoggedIn } from '../../services/storageService';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import StreamingProviderItem from '../../components/movies/StreamingProviderItem';
+
+const { UIManager } = NativeModules;
 
 const MovieDetailScreen = ({ route, navigation }) => {
   const { movieId } = route.params;
@@ -17,6 +37,23 @@ const MovieDetailScreen = ({ route, navigation }) => {
   const [isWatchlist, setIsWatchlist] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [isPaisajeMode, setIsPaisajeMode] = useState(false);
+  const [scrollStartOffset, setScrollStartOffset] = useState(0);
+  const [providers, setProviders] = useState([]);
+  const [loadingProviders, setLoadingProviders] = useState(true);
+  const [showPosterOverlay, setShowPosterOverlay] = useState(false);
+  
+  // Animations
+  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const scaleAnimation = useRef(new Animated.Value(1)).current;
+  
+  const scrollViewRef = useRef(null);
+  const scrollOffsetY = useRef(0);
+  const isAtTopOfPage = useRef(true);
+  const lastPullTriggeredTime = useRef(0);
+  const lastTrailerTriggerTime = useRef(0);
+  const posterAnimTimeout = useRef(null);
+  const trailerLoadTimeout = useRef(null);
 
   // Vérifier si l'utilisateur est connecté
   useEffect(() => {
@@ -40,10 +77,66 @@ const MovieDetailScreen = ({ route, navigation }) => {
   // Charger les détails du film et vérifier s'il est en favori
   useEffect(() => {
     loadMovieDetails();
+    loadProviders();
     if (sessionId) {
       checkMovieStatus();
     }
   }, [movieId, sessionId]);
+
+  // Rétablir l'orientation par défaut lors du démontage du composant
+  useEffect(() => {
+    return () => {
+      // Remettre en mode portrait lorsqu'on quitte l'écran
+      setOrientationPortrait();
+      
+      // Nettoyer les timeouts
+      if (posterAnimTimeout.current) {
+        clearTimeout(posterAnimTimeout.current);
+      }
+      if (trailerLoadTimeout.current) {
+        clearTimeout(trailerLoadTimeout.current);
+      }
+    };
+  }, []);
+
+  const loadProviders = async () => {
+    try {
+      const watchProviders = await tmdbService.getMovieWatchProviders(movieId);
+      // Utiliser la région FR ou à défaut US
+      const regionData = watchProviders.results?.FR || watchProviders.results?.US || {};
+      
+      // Récupérer les plateformes flatrate (SVoD)
+      const flatrateProviders = regionData.flatrate || [];
+      // Récupérer les plateformes de location
+      const rentalProviders = regionData.rent || [];
+      // Récupérer les plateformes d'achat
+      const buyProviders = regionData.buy || [];
+      
+      // Combinaison de toutes les plateformes en ajoutant un type
+      const allProviders = [
+        ...flatrateProviders.map(p => ({...p, type: 'SVoD'})),
+        ...rentalProviders.map(p => ({...p, type: 'Location'})),
+        ...buyProviders.map(p => ({...p, type: 'Achat'}))
+      ];
+      
+      // Éliminer les doublons (une plateforme peut être disponible en SVoD et en achat)
+      const uniqueProviders = [];
+      const providerIds = new Set();
+      
+      allProviders.forEach(provider => {
+        if (!providerIds.has(provider.provider_id)) {
+          providerIds.add(provider.provider_id);
+          uniqueProviders.push(provider);
+        }
+      });
+      
+      setProviders(uniqueProviders);
+    } catch (error) {
+      console.error("Erreur lors du chargement des plateformes:", error);
+    } finally {
+      setLoadingProviders(false);
+    }
+  };
 
   const loadMovieDetails = async () => {
     try {
@@ -54,22 +147,121 @@ const MovieDetailScreen = ({ route, navigation }) => {
       ]);
       setMovie(movieData);
       setCast(credits.cast.slice(0, 10)); // Les 10 premiers acteurs
-      const trailer = videos.find(video => video.type === 'Trailer');
-      if (trailer) {
-        setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}`);
+      
+      // Correction - videos est déjà un tableau
+      if (videos && videos.length > 0) {
+        // Chercher d'abord un trailer officiel
+        let trailer = videos.find(video => 
+          video.type === 'Trailer' && video.official === true
+        );
+        
+        // Si aucun trailer officiel n'est trouvé, prendre n'importe quel trailer
+        if (!trailer) {
+          trailer = videos.find(video => video.type === 'Trailer');
+        }
+        
+        // Si toujours rien, prendre n'importe quelle vidéo de type Clip
+        if (!trailer) {
+          trailer = videos.find(video => video.type === 'Clip');
+        }
+        
+        // En dernier recours, prendre la première vidéo YouTube
+        if (!trailer) {
+          trailer = videos.find(video => video.site === 'YouTube');
+        }
+        
+        if (trailer) {
+          console.log("Trailer trouvé:", trailer.name, "Key:", trailer.key);
+          setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}?autoplay=1`);
+        } else {
+          console.log("Aucun trailer disponible pour ce film malgré les vidéos disponibles");
+        }
+      } else {
+        console.log("Aucune vidéo disponible pour ce film");
       }
+      
       setIsLoading(false);
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors du chargement des détails:", error);
       setIsLoading(false);
     }
   };
 
-  const handlePlayTrailer = () => {
+  const setOrientationLandscape = async () => {
+    try {
+      setIsPaisajeMode(true);
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } catch (error) {
+      console.error("Erreur lors du passage en mode paysage:", error);
+    }
+  };
+
+  const setOrientationPortrait = async () => {
+    try {
+      setIsPaisajeMode(false);
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    } catch (error) {
+      console.error("Erreur lors du passage en mode portrait:", error);
+    }
+  };
+
+  const handlePlayTrailer = async () => {
+    // Vérifier si un trailer a été récemment lancé
+    const now = Date.now();
+    if (now - lastTrailerTriggerTime.current < 2000) {
+      console.log("Ignoré - Trailer déjà déclenché récemment");
+      return;
+    }
+    
     if (trailerUrl) {
-      setShowTrailerModal(true);
+      console.log("Lancement du trailer avec animation améliorée:", trailerUrl);
+      lastTrailerTriggerTime.current = now;
+      
+      // Réinitialiser les animations
+      fadeAnimation.setValue(1);
+      scaleAnimation.setValue(1);
+      
+      // Afficher l'overlay avec le poster
+      setShowPosterOverlay(true);
+      await setOrientationLandscape();
+      
+      // Séquence d'animations
+      // 1. D'abord zoom sur l'image (300ms)
+      Animated.timing(scaleAnimation, {
+        toValue: 1.2,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      
+      // 2. Puis fade out (300ms)
+      setTimeout(() => {
+        Animated.timing(fadeAnimation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(({ finished }) => {
+          if (finished) {
+            // Une fois l'animation terminée, masquer l'overlay et afficher le trailer
+            setShowPosterOverlay(false);
+            setShowTrailerModal(true);
+          }
+        });
+      }, 300);
     } else {
       Alert.alert('Trailer non disponible', 'Aucun trailer trouvé pour ce film.');
+    }
+  };
+
+  const handleCloseTrailer = async () => {
+    setShowTrailerModal(false);
+    await setOrientationPortrait();
+    
+    // Nettoyer les timeouts
+    if (posterAnimTimeout.current) {
+      clearTimeout(posterAnimTimeout.current);
+    }
+    if (trailerLoadTimeout.current) {
+      clearTimeout(trailerLoadTimeout.current);
     }
   };
 
@@ -144,6 +336,44 @@ const MovieDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  // Fonction pour suivre la position de défilement
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    scrollOffsetY.current = offsetY;
+    
+    // Déterminer si on est au sommet de la page
+    isAtTopOfPage.current = offsetY <= 0;
+  };
+
+  // Fonction appelée au début du scroll
+  const handleScrollBeginDrag = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setScrollStartOffset(offsetY);
+    console.log("Début du scroll à l'offset Y:", offsetY);
+  };
+
+  // Fonction appelée lors du relâchement du scroll - version plus sensible
+  const handleScrollEndDrag = (event) => {
+    const currentOffsetY = event.nativeEvent.contentOffset.y;
+    const scrollDistance = currentOffsetY - scrollStartOffset;
+    
+    console.log("Fin du scroll - distance:", scrollDistance, "départ:", scrollStartOffset, "fin:", currentOffsetY);
+    
+    // Détection plus sensible - seuil de distance réduit à -20 au lieu de -50
+    // Et acceptation de toute position jusqu'à 20px du haut
+    if (currentOffsetY <= 20 && scrollDistance < -20) {
+      console.log("Swipe down détecté au sommet - lancement du trailer");
+      if (trailerUrl) {
+        // Ajouter un petit délai pour éviter les problèmes d'interaction
+        setTimeout(() => {
+          handlePlayTrailer();
+        }, 100);
+      } else {
+        Alert.alert('Trailer non disponible', 'Aucun trailer trouvé pour ce film.');
+      }
+    }
+  };
+
   if (isLoading || !movie) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -153,134 +383,197 @@ const MovieDetailScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header avec bouton retour */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.backButton, { backgroundColor: theme.card }]}
-        >
-          <Ionicons name="arrow-back" size={24} color={theme.text} />
-        </TouchableOpacity>
-      </View>
-        <Image
-          source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
-          style={styles.poster}
-        />
-      <View style={styles.infoContainer}>
-        {/* Titre et année */}
-        <View style={styles.titleContainer}>
-          <View style={styles.titleWrapper}>
-            <Text style={[styles.title, { color: theme.text }]}>{movie.title}</Text>
-            <Text style={[styles.year, { color: theme.textSecondary }]}>
-              {new Date(movie.release_date).getFullYear()}
-            </Text>
-          </View>
-          
-          {/* Boutons d'action */}
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              onPress={handleToggleFavorite}
-              style={[styles.actionButton, { backgroundColor: theme.card }]}
-            >
-              <Ionicons 
-                name={isFavorite ? "heart" : "heart-outline"} 
-                size={24} 
-                color={isFavorite ? "#FF6B6B" : theme.text} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              onPress={handleToggleWatchlist}
-              style={[styles.actionButton, { backgroundColor: theme.card }]}
-            >
-              <Ionicons 
-                name={isWatchlist ? "bookmark" : "bookmark-outline"} 
-                size={24} 
-                color={isWatchlist ? theme.primary : theme.text} 
-              />
-            </TouchableOpacity>
-          </View>
+    <>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={[styles.container, { backgroundColor: theme.background }]}
+        onScroll={handleScroll}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
+        scrollEventThrottle={16}
+      >
+        {/* Header avec bouton retour */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backButton, { backgroundColor: theme.card }]}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
+          </TouchableOpacity>
         </View>
-
-        {/* Genres */}
-        <View style={styles.genresContainer}>
-          {movie.genres && movie.genres.map(genre => (
-            <View
-              key={genre.id}
-              style={[styles.genreTag, { backgroundColor: theme.primary }]}
-            >
-              <Text style={[styles.genreText, { color: '#fff' }]}>
-                {genre.name}
+          <Image
+            source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
+            style={styles.poster}
+          />
+        <View style={styles.infoContainer}>
+          {/* Titre et année */}
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWrapper}>
+              <Text style={[styles.title, { color: theme.text }]}>{movie.title}</Text>
+              <Text style={[styles.year, { color: theme.textSecondary }]}>
+                {new Date(movie.release_date).getFullYear()}
               </Text>
             </View>
-          ))}
-        </View>
+            
+            {/* Boutons d'action */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                onPress={handleToggleFavorite}
+                style={[styles.actionButton, { backgroundColor: theme.card }]}
+              >
+                <Ionicons 
+                  name={isFavorite ? "heart" : "heart-outline"} 
+                  size={24} 
+                  color={isFavorite ? "#FF6B6B" : theme.text} 
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                onPress={handleToggleWatchlist}
+                style={[styles.actionButton, { backgroundColor: theme.card }]}
+              >
+                <Ionicons 
+                  name={isWatchlist ? "bookmark" : "bookmark-outline"} 
+                  size={24} 
+                  color={isWatchlist ? theme.primary : theme.text} 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {/* Note et durée */}
-        <View style={styles.statsContainer}>
-          <View style={styles.stat}>
-            <Ionicons name="star" size={20} color="#FFD700" />
-            <Text style={[styles.statText, { color: theme.text }]}>
-              {movie.vote_average.toFixed(1)}/10
+          {/* Indice de tirage pour lancer le trailer */}
+          <View style={styles.pullHintContainer}>
+            <Ionicons name="arrow-down" size={20} color={theme.textSecondary} />
+            <Text style={[styles.pullHintText, { color: theme.textSecondary }]}>
+              Tirez vers le bas pour lancer le trailer
             </Text>
           </View>
-          <View style={styles.stat}>
-            <Ionicons name="time-outline" size={20} color={theme.text} />
-            <Text style={[styles.statText, { color: theme.text }]}>
-              {movie.runtime} min
-            </Text>
+
+          {/* Genres */}
+          <View style={styles.genresContainer}>
+            {movie.genres && movie.genres.map(genre => (
+              <View
+                key={genre.id}
+                style={[styles.genreTag, { backgroundColor: theme.primary }]}
+              >
+                <Text style={[styles.genreText, { color: '#fff' }]}>
+                  {genre.name}
+                </Text>
+              </View>
+            ))}
           </View>
+          
+          {/* Plateformes de streaming (scrollable) */}
+          {providers.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Disponible sur</Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={styles.providersScrollContainer}
+                contentContainerStyle={styles.providersScrollContent}
+              >
+                {providers.map(provider => (
+                  <StreamingProviderItem 
+                    key={provider.provider_id}
+                    provider={provider}
+                    movieTitle={movie.title}
+                    theme={theme}
+                  />
+                ))}
+              </ScrollView>
+            </>
+          )}
+
+          {/* Note et durée */}
+          <View style={styles.statsContainer}>
+            <View style={styles.stat}>
+              <Ionicons name="star" size={20} color="#FFD700" />
+              <Text style={[styles.statText, { color: theme.text }]}>
+                {movie.vote_average.toFixed(1)}/10
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <Ionicons name="time-outline" size={20} color={theme.text} />
+              <Text style={[styles.statText, { color: theme.text }]}>
+                {movie.runtime} min
+              </Text>
+            </View>
+          </View>
+
+          {/* Synopsis */}
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Synopsis</Text>
+          <Text style={[styles.overview, { color: theme.text }]}>
+            {movie.overview}
+          </Text>
+
+          {/* Play Trailer */}
+          <TouchableOpacity
+            style={[styles.trailerButton, { backgroundColor: theme.primary }]}
+            onPress={handlePlayTrailer}
+          >
+            <Ionicons name="play-circle-outline" size={20} color="#fff" style={styles.trailerIcon} />
+            <Text style={styles.trailerButtonText}>Jouer le Trailer</Text>
+          </TouchableOpacity>
+
+          {/* Distribution */}
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Distribution</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {cast.map(actor => (
+              <TouchableOpacity
+                key={actor.id}
+                style={styles.actorCard}
+                onPress={() => navigation.navigate('ActorDetail', { actorId: actor.id })}
+              >
+                <Image
+                  source={{
+                    uri: actor.profile_path
+                      ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+                      : 'https://via.placeholder.com/185x278'
+                  }}
+                  style={styles.actorImage}
+                />
+                <Text style={[styles.actorName, { color: theme.text }]}>
+                  {actor.name}
+                </Text>
+                <Text style={[styles.character, { color: theme.textSecondary }]}>
+                  {actor.character}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
+      </ScrollView>
 
-        {/* Synopsis */}
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Synopsis</Text>
-        <Text style={[styles.overview, { color: theme.text }]}>
-          {movie.overview}
-        </Text>
+      {/* Overlay pour l'animation du poster en plein écran */}
+      {showPosterOverlay && (
+        <Animated.View style={[
+          styles.posterOverlay,
+          { 
+            opacity: fadeAnimation,
+            backgroundColor: 'black'
+          }
+        ]}>
+          <Animated.Image
+            source={{ uri: `https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}` }}
+            style={[
+              styles.fullscreenPoster,
+              {
+                transform: [{ scale: scaleAnimation }]
+              }
+            ]}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      )}
 
-        {/* Play Trailer */}
-        <TouchableOpacity
-          style={{ backgroundColor: theme.primary, padding: 12, borderRadius: 8, alignItems: 'center' }}
-          onPress={handlePlayTrailer}
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Jouer le Trailer</Text>
-        </TouchableOpacity>
-
-        {/* Distribution */}
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Distribution</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {cast.map(actor => (
-            <TouchableOpacity
-              key={actor.id}
-              style={styles.actorCard}
-              onPress={() => navigation.navigate('ActorDetail', { actorId: actor.id })}
-            >
-              <Image
-                source={{
-                  uri: actor.profile_path
-                    ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
-                    : 'https://via.placeholder.com/185x278'
-                }}
-                style={styles.actorImage}
-              />
-              <Text style={[styles.actorName, { color: theme.text }]}>
-                {actor.name}
-              </Text>
-              <Text style={[styles.character, { color: theme.textSecondary }]}>
-                {actor.character}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Trailer Modal */}
+      {/* Trailer Modal - lecture automatique */}
       <Modal
-        animationType="slide"
-        transparent={true}
+        animationType="fade"
+        transparent={false}
         visible={showTrailerModal}
-        onRequestClose={() => setShowTrailerModal(false)}
+        onRequestClose={handleCloseTrailer}
+        supportedOrientations={['landscape']}
       >
         <View style={styles.modalContainer}>
           <WebView
@@ -288,11 +581,18 @@ const MovieDetailScreen = ({ route, navigation }) => {
             style={{ flex: 1 }}
             javaScriptEnabled={true}
             domStorageEnabled={true}
+            allowsFullscreenVideo={true}
+            mediaPlaybackRequiresUserAction={false} // Permet la lecture automatique
           />
-          <Button title="Fermer" onPress={() => setShowTrailerModal(false)} />
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={handleCloseTrailer}
+          >
+            <Ionicons name="close-circle" size={40} color="#fff" />
+          </TouchableOpacity>
         </View>
       </Modal>
-    </ScrollView>
+    </>
   );
 };
 
@@ -347,6 +647,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pullHintContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    opacity: 0.7,
+  },
+  pullHintText: {
+    marginLeft: 8,
+    fontSize: 14,
+  },
   genresContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -360,6 +671,12 @@ const styles = StyleSheet.create({
   },
   genreText: {
     fontSize: 14,
+  },
+  providersScrollContainer: {
+    marginBottom: 20,
+  },
+  providersScrollContent: {
+    paddingRight: 20,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -384,6 +701,21 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
+  trailerButton: {
+    flexDirection: 'row',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  trailerButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  trailerIcon: {
+    marginRight: 8,
+  },
   actorCard: {
     width: 120,
     marginRight: 16,
@@ -405,6 +737,26 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'black',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 2,
+  },
+  posterOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  fullscreenPoster: {
+    width: '100%',
+    height: '100%',
   },
 });
 
