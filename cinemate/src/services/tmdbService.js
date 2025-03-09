@@ -22,6 +22,8 @@ const GENRES = {
   SCIENCE_FICTION: 878
 };
 
+
+
 const tmdbService = {
   // === MÉTHODES D'AUTHENTIFICATION ===
   
@@ -72,6 +74,9 @@ const tmdbService = {
     return response.data;
   },
   
+
+  
+
   getMovieWatchProviders: async (movieId) => {
     try {
       const response = await api.get(`/movie/${movieId}/watch/providers`);
@@ -80,7 +85,7 @@ const tmdbService = {
       console.error(`Erreur lors de la récupération des plateformes pour le film ${movieId}:`, error);
       return { results: {} };
     }
-  }, 
+  },
 
   // Obtenir les films favoris de l'utilisateur
   getFavoriteMovies: async (accountId, sessionId, page = 1) => {
@@ -336,7 +341,7 @@ const tmdbService = {
       console.error('Erreur lors de la récupération des vidéos du film:', error);
       throw error;
     }
-},
-  };
+  },
+};
 
 export default tmdbService;

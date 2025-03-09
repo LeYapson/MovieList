@@ -44,7 +44,7 @@ const MovieDetailScreen = ({ route, navigation }) => {
   const [showPosterOverlay, setShowPosterOverlay] = useState(false);
   
   // Animations
-  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const fadeAnimation = useRef(new Animated.Value(1)).current;
   const scaleAnimation = useRef(new Animated.Value(1)).current;
   
   const scrollViewRef = useRef(null);
@@ -99,11 +99,19 @@ const MovieDetailScreen = ({ route, navigation }) => {
     };
   }, []);
 
+  // Ajoutez ou remplacez cette fonction dans MovieDetailScreen.jsx
   const loadProviders = async () => {
     try {
       const watchProviders = await tmdbService.getMovieWatchProviders(movieId);
+      console.log(`Données de providers pour le film ${movieId}:`, watchProviders);
+      
       // Utiliser la région FR ou à défaut US
       const regionData = watchProviders.results?.FR || watchProviders.results?.US || {};
+      
+      // Log la page JustWatch si disponible
+      if (regionData.link) {
+        console.log("Lien JustWatch:", regionData.link);
+      }
       
       // Récupérer les plateformes flatrate (SVoD)
       const flatrateProviders = regionData.flatrate || [];
@@ -112,14 +120,15 @@ const MovieDetailScreen = ({ route, navigation }) => {
       // Récupérer les plateformes d'achat
       const buyProviders = regionData.buy || [];
       
-      // Combinaison de toutes les plateformes en ajoutant un type
+      // Combinaison de toutes les plateformes en ajoutant un type et le lien JustWatch
       const allProviders = [
-        ...flatrateProviders.map(p => ({...p, type: 'SVoD'})),
-        ...rentalProviders.map(p => ({...p, type: 'Location'})),
-        ...buyProviders.map(p => ({...p, type: 'Achat'}))
+        ...flatrateProviders.map(p => ({...p, type: 'SVoD', link: regionData.link})),
+        ...rentalProviders.map(p => ({...p, type: 'Location', link: regionData.link})),
+        ...buyProviders.map(p => ({...p, type: 'Achat', link: regionData.link}))
       ];
       
       // Éliminer les doublons (une plateforme peut être disponible en SVoD et en achat)
+      // En gardant la priorité: SVoD > Location > Achat
       const uniqueProviders = [];
       const providerIds = new Set();
       
@@ -130,6 +139,14 @@ const MovieDetailScreen = ({ route, navigation }) => {
         }
       });
       
+      // Vérifier si nous avons trouvé des providers spécifiques
+      if (uniqueProviders.length > 0) {
+        console.log(`${uniqueProviders.length} services de streaming trouvés:`, 
+          uniqueProviders.map(p => p.provider_name).join(', '));
+      } else {
+        console.log("Aucun service de streaming trouvé pour ce film");
+      }
+      
       setProviders(uniqueProviders);
     } catch (error) {
       console.error("Erreur lors du chargement des plateformes:", error);
@@ -137,6 +154,7 @@ const MovieDetailScreen = ({ route, navigation }) => {
       setLoadingProviders(false);
     }
   };
+
 
   const loadMovieDetails = async () => {
     try {
@@ -148,7 +166,7 @@ const MovieDetailScreen = ({ route, navigation }) => {
       setMovie(movieData);
       setCast(credits.cast.slice(0, 10)); // Les 10 premiers acteurs
       
-      // Correction - videos est déjà un tableau
+      // Traitement des vidéos
       if (videos && videos.length > 0) {
         // Chercher d'abord un trailer officiel
         let trailer = videos.find(video => 
@@ -479,6 +497,8 @@ const MovieDetailScreen = ({ route, navigation }) => {
                     provider={provider}
                     movieTitle={movie.title}
                     theme={theme}
+                    movieTitle={movie.title}
+                    theme={theme}
                   />
                 ))}
               </ScrollView>
@@ -594,9 +614,9 @@ const MovieDetailScreen = ({ route, navigation }) => {
       </Modal>
     </>
   );
-};
+  };
 
-const styles = StyleSheet.create({
+  const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
