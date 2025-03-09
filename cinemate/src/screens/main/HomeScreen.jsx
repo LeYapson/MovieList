@@ -1,6 +1,6 @@
 // src/screens/main/HomeScreen.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { View , FlatList , StyleSheet , ActivityIndicator , Dimensions , Animated , Easing } from 'react-native';
+import { View , FlatList , StyleSheet , ActivityIndicator , Dimensions , Animated , Easing, Text } from 'react-native';
 import MovieList from '../../components/movies/MovieList';
 import tmdbService from '../../services/tmdbService';
 import { useTheme } from '../../context/ThemeContext';
@@ -223,6 +223,15 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  const renderEmptyList = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: theme.text }]}>
+        Chargement des films...
+      </Text>
+      <PulseLoader color={theme.primary} />
+    </View>
+  );
+
   return (  
     <FlatList
       ref={flatListRef}
@@ -242,6 +251,7 @@ const HomeScreen = ({ navigation }) => {
       maintainVisibleContentPosition={{ 
         minIndexForVisible: 0,
       }}
+      ListEmptyComponent={renderEmptyList}
     />
   );
 };
@@ -269,6 +279,17 @@ const styles = StyleSheet.create({
   },
   placeholderContainer: {
     flex: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 300,
+  },
+  emptyText: {
+    fontSize: 16,
+    marginBottom: 20,
+    fontWeight: '600',
   },
 });
 

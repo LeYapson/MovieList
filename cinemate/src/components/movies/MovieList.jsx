@@ -2,10 +2,10 @@
 import React from 'react';
 import { View, ScrollView, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const MovieList = ({ title, movies, onMoviePress }) => {
+const MovieList = ({ title, movies, onMoviePress, theme }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {movies.map((movie) => (
           <TouchableOpacity
@@ -19,7 +19,7 @@ const MovieList = ({ title, movies, onMoviePress }) => {
                 uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`
               }}
             />
-            <Text style={styles.movieTitle} numberOfLines={2}>
+            <Text style={[styles.movieTitle, { color: theme.text }]} numberOfLines={2}>
               {movie.title}
             </Text>
           </TouchableOpacity>
@@ -52,6 +52,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 14,
     textAlign: 'center',
+    height: 40, // Hauteur fixe pour accommoder deux lignes
+    lineHeight: 18, // Espacement des lignes amélioré
   },
 });
 

@@ -190,7 +190,16 @@ const MovieDetailScreen = ({ route, navigation }) => {
         
         if (trailer) {
           console.log("Trailer trouvé:", trailer.name, "Key:", trailer.key);
-          setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}?autoplay=1`);
+          // Paramètres YouTube améliorés pour qualité maximale et plein écran:
+          // autoplay=1: lecture auto
+          // fs=1: bouton plein écran
+          // modestbranding=1: branding minimal
+          // rel=0: pas de vidéos suggérées
+          // showinfo=0: masque les infos vidéo
+          // vq=hd1080: force qualité HD 1080p
+          // cc_load_policy=0: désactive sous-titres par défaut
+          // iv_load_policy=3: masque annotations
+          setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}?autoplay=1&fs=1&modestbranding=1&rel=0&showinfo=0&vq=hd1080&cc_load_policy=0&iv_load_policy=3`);
         } else {
           console.log("Aucun trailer disponible pour ce film malgré les vidéos disponibles");
         }
@@ -239,40 +248,66 @@ const MovieDetailScreen = ({ route, navigation }) => {
       fadeAnimation.setValue(1);
       scaleAnimation.setValue(1);
       
-      // Afficher l'overlay avec le poster
-      setShowPosterOverlay(true);
-      await setOrientationLandscape();
-      
-      // Séquence d'animations
-      // 1. D'abord zoom sur l'image (300ms)
-      Animated.timing(scaleAnimation, {
-        toValue: 1.2,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-      
-      // 2. Puis fade out (300ms)
-      setTimeout(() => {
-        Animated.timing(fadeAnimation, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished) {
-            // Une fois l'animation terminée, masquer l'overlay et afficher le trailer
+      try {
+        // Afficher l'overlay avec le poster
+        setShowPosterOverlay(true);
+        await setOrientationLandscape();
+        
+        // Animation améliorée et plus visible
+        Animated.sequence([
+          // D'abord un petit zoom out
+          Animated.timing(scaleAnimation, {
+            toValue: 0.9,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          // Ensuite un zoom in plus marqué
+          Animated.timing(scaleAnimation, {
+            toValue: 1.4,
+            duration: 400,
+            useNativeDriver: true,
+          })
+        ]).start();
+        
+        // Planifier le fondu et l'affichage du trailer
+        setTimeout(() => {
+          Animated.timing(fadeAnimation, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
+          
+          // S'assurer que la transition vers le trailer se produit
+          setTimeout(() => {
+            console.log("Affichage du modal trailer...");
             setShowPosterOverlay(false);
             setShowTrailerModal(true);
-          }
-        });
-      }, 300);
+          }, 350); // Attendre juste après la fin du fade
+        }, 600);
+      } catch (error) {
+        console.error("Erreur lors de l'animation:", error);
+        // Fallback en cas d'erreur - afficher directement le trailer
+        setShowPosterOverlay(false);
+        setShowTrailerModal(true);
+      }
     } else {
       Alert.alert('Trailer non disponible', 'Aucun trailer trouvé pour ce film.');
     }
   };
 
   const handleCloseTrailer = async () => {
+    console.log("Fermeture du trailer");
     setShowTrailerModal(false);
-    await setOrientationPortrait();
+    
+    // Attendre un court instant pour éviter les problèmes de transition
+    setTimeout(async () => {
+      try {
+        await setOrientationPortrait();
+        console.log("Orientation remise en portrait");
+      } catch (error) {
+        console.error("Erreur lors du retour en mode portrait:", error);
+      }
+    }, 100);
     
     // Nettoyer les timeouts
     if (posterAnimTimeout.current) {
@@ -497,8 +532,6 @@ const MovieDetailScreen = ({ route, navigation }) => {
                     provider={provider}
                     movieTitle={movie.title}
                     theme={theme}
-                    movieTitle={movie.title}
-                    theme={theme}
                   />
                 ))}
               </ScrollView>
@@ -589,20 +622,31 @@ const MovieDetailScreen = ({ route, navigation }) => {
 
       {/* Trailer Modal - lecture automatique */}
       <Modal
-        animationType="fade"
-        transparent={false}
+        animationType="none"
+        transparent={true}
         visible={showTrailerModal}
         onRequestClose={handleCloseTrailer}
         supportedOrientations={['landscape']}
+        statusBarTranslucent={true}
       >
         <View style={styles.modalContainer}>
           <WebView
             source={{ uri: trailerUrl }}
-            style={{ flex: 1 }}
+            style={styles.fullscreenVideo}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             allowsFullscreenVideo={true}
-            mediaPlaybackRequiresUserAction={false} // Permet la lecture automatique
+            mediaPlaybackRequiresUserAction={false}
+            scrollEnabled={false}
+            bounces={false}
+            onLoad={() => {
+              console.log("WebView chargée, le trailer devrait démarrer");
+            }}
+            onError={(error) => {
+              console.error("Erreur WebView:", error);
+            }}
+            onLoadStart={() => console.log("Début du chargement de la WebView")}
+            onLoadEnd={() => console.log("Fin du chargement de la WebView")}
           />
           <TouchableOpacity 
             style={styles.closeButton}
@@ -614,9 +658,9 @@ const MovieDetailScreen = ({ route, navigation }) => {
       </Modal>
     </>
   );
-  };
+};
 
-  const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -758,11 +802,19 @@ const MovieDetailScreen = ({ route, navigation }) => {
     flex: 1,
     backgroundColor: 'black',
   },
+  fullscreenVideo: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   closeButton: {
     position: 'absolute',
     top: 20,
     right: 20,
     zIndex: 2,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 5,
   },
   posterOverlay: {
     position: 'absolute',
@@ -777,6 +829,14 @@ const MovieDetailScreen = ({ route, navigation }) => {
   fullscreenPoster: {
     width: '100%',
     height: '100%',
+    borderRadius: 8,  // Léger arrondi
+    shadowColor: "#fff",  // Ombre blanche pour l'effet de lueur
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
   },
 });
 

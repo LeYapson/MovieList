@@ -1,16 +1,30 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../context/ThemeContext'; // Ajoutez le chemin correct vers votre contexte
 
-export const MovieCard = ({ title, posterPath, releaseDate, onPress }) => {
+export const MovieCard = ({ title, posterPath, releaseDate, onPress, theme: propTheme }) => {
+  // Utiliser le thème fourni par les props ou le hook useTheme()
+  const { theme: contextTheme } = useTheme();
+  const theme = propTheme || contextTheme;
+  
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity 
+      style={[
+        styles.card, 
+        { 
+          backgroundColor: theme.card,
+          shadowColor: theme.shadow || '#000',
+        }
+      ]} 
+      onPress={onPress}
+    >
       <Image
         style={styles.poster}
         source={{ uri: `https://image.tmdb.org/t/p/w500${posterPath}` }}
       />
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>{title}</Text>
-        <Text style={styles.date}>{releaseDate}</Text>
+        <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>{title}</Text>
+        <Text style={[styles.date, { color: theme.textSecondary }]}>{releaseDate}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -18,11 +32,9 @@ export const MovieCard = ({ title, posterPath, releaseDate, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
     borderRadius: 8,
     marginVertical: 8,
     marginHorizontal: 16,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -47,6 +59,5 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-    color: '#666',
   },
 });
