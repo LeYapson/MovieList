@@ -190,16 +190,8 @@ const MovieDetailScreen = ({ route, navigation }) => {
         
         if (trailer) {
           console.log("Trailer trouvé:", trailer.name, "Key:", trailer.key);
-          // Paramètres YouTube améliorés pour qualité maximale et plein écran:
-          // autoplay=1: lecture auto
-          // fs=1: bouton plein écran
-          // modestbranding=1: branding minimal
-          // rel=0: pas de vidéos suggérées
-          // showinfo=0: masque les infos vidéo
-          // vq=hd1080: force qualité HD 1080p
-          // cc_load_policy=0: désactive sous-titres par défaut
-          // iv_load_policy=3: masque annotations
-          setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}?autoplay=1&fs=1&modestbranding=1&rel=0&showinfo=0&vq=hd1080&cc_load_policy=0&iv_load_policy=3`);
+          // URL optimisée pour mobile - plus simple mais plus fiable
+          setTrailerUrl(`https://www.youtube.com/embed/${trailer.key}?playsinline=1&autoplay=1&controls=1`);
         } else {
           console.log("Aucun trailer disponible pour ce film malgré les vidéos disponibles");
         }

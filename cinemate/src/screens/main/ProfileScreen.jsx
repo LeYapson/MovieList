@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { getAccountDetails } from '../../services/authService';
 import { getSessionId, removeSessionId, isLoggedIn } from '../../services/storageService';
+import { useTheme } from '../../context/ThemeContext';
 
 const ProfileScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,28 +47,28 @@ const ProfileScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#2196F3" />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profil</Text>
+        <Text style={[styles.title, { color: theme.primary }]}>Profil</Text>
       </View>
 
       {userDetails ? (
         <View style={styles.userInfo}>
-          <Text style={styles.label}>Nom d'utilisateur TMDB</Text>
-          <Text style={styles.value}>{userDetails.username}</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Nom d'utilisateur TMDB</Text>
+          <Text style={[styles.value, { color: theme.text }]}>{userDetails.username}</Text>
 
-          <Text style={styles.label}>Inclure les contenus adultes</Text>
-          <Text style={styles.value}>{userDetails.include_adult ? 'Oui' : 'Non'}</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Inclure les contenus adultes</Text>
+          <Text style={[styles.value, { color: theme.text }]}>{userDetails.include_adult ? 'Oui' : 'Non'}</Text>
         </View>
       ) : (
-        <Text>Aucune information de profil disponible.</Text>
+        <Text style={{ color: theme.text }}>Aucune information de profil disponible.</Text>
       )}
 
       <View style={styles.actions}>
@@ -83,7 +85,6 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
   },
   header: {
@@ -93,7 +94,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2196F3',
     marginBottom: 20,
   },
   userInfo: {
@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 5,
   },
   value: {

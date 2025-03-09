@@ -1,63 +1,130 @@
-import React from 'react';
-import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../context/ThemeContext'; // Ajoutez le chemin correct vers votre contexte
+import React, { memo, useEffect, useRef } from 'react';
+import { Animated, TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-export const MovieCard = ({ title, posterPath, releaseDate, onPress, theme: propTheme }) => {
-  // Utiliser le thème fourni par les props ou le hook useTheme()
-  const { theme: contextTheme } = useTheme();
-  const theme = propTheme || contextTheme;
-  
+// Composant MovieCard optimisé avec memo pour éviter les re-renders inutiles
+const AnimatedMovieCard = memo(({ movie, onPress, index, delay = 0, theme }) => {
+  const posterUrl = movie.poster_path 
+    ? `https://image.tmdb.org/t/p/w342${movie.poster_path}` // Utiliser w342 au lieu de w500 pour charger plus rapidement
+    : 'https://via.placeholder.com/342x513?text=No+Image';
+
+  // Animation pour l'apparition progressive
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animation avec délai basé sur l'index
+    const animDelay = delay + Math.min(index * 50, 500); // Limiter le délai max à 500ms
+    
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 250, // Réduit à 250ms
+        delay: animDelay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 250, // Réduit à 250ms
+        delay: animDelay,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [movie.id]); // Dépendance sur movie.id au lieu de []
+
   return (
-    <TouchableOpacity 
+    <Animated.View 
       style={[
-        styles.card, 
-        { 
-          backgroundColor: theme.card,
-          shadowColor: theme.shadow || '#000',
+        styles.movieCardContainer,
+        {
+          opacity: opacityAnim,
+          transform: [{ scale: scaleAnim }]
         }
-      ]} 
-      onPress={onPress}
+      ]}
     >
-      <Image
-        style={styles.poster}
-        source={{ uri: `https://image.tmdb.org/t/p/w500${posterPath}` }}
-      />
-      <View style={styles.info}>
-        <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>{title}</Text>
-        <Text style={[styles.date, { color: theme.textSecondary }]}>{releaseDate}</Text>
-      </View>
-    </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.movieCard, { backgroundColor: theme.card }]}
+        onPress={() => onPress(movie.id)}
+        activeOpacity={0.7}
+      >
+        <Image 
+          source={{ uri: posterUrl }}
+          style={styles.poster}
+          resizeMode="cover"
+          // Ajout de props pour optimiser le chargement des images
+          progressiveRenderingEnabled={true}
+          fadeDuration={300}
+        />
+        <View style={[styles.titleContainer, { backgroundColor: theme.card }]}>
+          <Text style={[styles.movieTitle, { color: theme.text }]} numberOfLines={2}>
+            {movie.title}
+          </Text>
+          {movie.release_date ? (
+            <Text style={[styles.dateText, { color: theme.textSecondary }]}>
+              {new Date(movie.release_date).getFullYear()}
+            </Text>
+          ) : null}
+          {movie.vote_average > 0 ? (
+            <View style={styles.ratingContainer}>
+              <Ionicons name="star" size={12} color="#FFD700" />
+              <Text style={[styles.ratingText, { color: theme.text }]}>
+                {movie.vote_average.toFixed(1)}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
-};
+}, (prevProps, nextProps) => {
+  // Fonction de comparaison personnalisée pour memo
+  // Ne re-render que si l'ID du film change
+  return prevProps.movie.id === nextProps.movie.id;
+});
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 8,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  movieCardContainer: {
+    margin: 8,
+    flex: 1, // Remplace width fixe pour mieux s'adapter
+    maxWidth: '50%',
+  },
+  movieCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   poster: {
     width: '100%',
-    height: 200,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    aspectRatio: 2/3, // Utiliser aspectRatio au lieu de hauteur fixe
+    borderRadius: 16,
   },
-  info: {
+  titleContainer: {
     padding: 12,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
-  title: {
-    fontSize: 16,
+  movieTitle: {
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  date: {
-    fontSize: 14,
+  dateText: {
+    fontSize: 12,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    marginLeft: 4,
+    fontWeight: '500',
   },
 });
+
+export default AnimatedMovieCard;
