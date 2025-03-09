@@ -7,13 +7,49 @@ import {
   ActivityIndicator, 
   RefreshControl, 
   TouchableOpacity, 
-  Alert 
+  Alert,
+  Image 
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getSessionId, isLoggedIn } from '../../services/storageService';
 import { ThemeContext } from '../../context/ThemeContext';
-import MovieCard from '../../components/movies/MovieCard';
 import { useContext } from 'react';
+
+// Solution temporaire si MovieCard pose problème
+const MovieCard = ({ movie, onPress, onLongPress }) => {
+  const { theme } = useContext(ThemeContext);
+  const posterUrl = movie.poster_path 
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : 'https://via.placeholder.com/500x750?text=No+Image';
+
+  return (
+    <TouchableOpacity 
+      style={styles.movieCard}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.7}
+    >
+      <Image 
+        source={{ uri: posterUrl }}
+        style={styles.poster}
+        resizeMode="cover"
+      />
+      <View style={[styles.titleContainer, { backgroundColor: theme?.card || '#f5f5f5' }]}>
+        <Text 
+          style={[styles.title, { color: theme?.text || '#000' }]}
+          numberOfLines={2}
+        >
+          {movie.title}
+        </Text>
+        {movie.release_date && (
+          <Text style={[styles.date, { color: theme?.textSecondary || '#666' }]}>
+            {new Date(movie.release_date).getFullYear()}
+          </Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const WatchlistScreen = ({ navigation }) => {
   // Debug log
@@ -297,6 +333,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  // Styles pour MovieCard interne
+  movieCard: {
+    flex: 1,
+    margin: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 3,
+    backgroundColor: '#fff',
+    maxWidth: '48%',
+  },
+  poster: {
+    width: '100%',
+    height: 200,
+  },
+  titleContainer: {
+    padding: 12,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  date: {
+    fontSize: 12,
+  }
 });
 
 export default WatchlistScreen;
