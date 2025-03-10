@@ -54,7 +54,7 @@ const MovieDetailScreen = ({ route, navigation }) => {
   const lastTrailerTriggerTime = useRef(0);
   const posterAnimTimeout = useRef(null);
   const trailerLoadTimeout = useRef(null);
-
+ 
   // Vérifier si l'utilisateur est connecté
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -651,6 +651,52 @@ const MovieDetailScreen = ({ route, navigation }) => {
     </>
   );
 };
+ // test yanisse
+const GenreSearch = ({ movies, searchQuery, theme }) => {
+  const [filteredMovies, setFilteredMovies] = useState(movies);
+
+  React.useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredMovies(movies);
+    } else {
+      const filtered = movies.filter((movie) =>
+        movie.genres.some((genre) =>
+          genre.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+      setFilteredMovies(filtered);
+    }
+  }, [searchQuery, movies]);
+
+  return (
+    <View style={styles.container}>
+      {/* Résultats des films filtrés */}
+      <FlatList
+        data={filteredMovies}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.movieItem}>
+            <Text style={[styles.movieTitle, { color: theme.primary }]}>
+              {item.title}
+            </Text>
+            <View style={styles.genresContainer}>
+              {item.genres.map((genre) => (
+                <View
+                  key={genre.id}
+                  style={[styles.genreTag, { backgroundColor: theme.primary }]}
+                >
+                  <Text style={[styles.genreText, { color: '#fff' }]}>
+                    {genre.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -829,6 +875,32 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.6,
     shadowRadius: 20,
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  movieItem: {
+    marginBottom: 20,
+  },
+  movieTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  genresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  genreTag: {
+    padding: 6,
+    borderRadius: 12,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  genreText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 
