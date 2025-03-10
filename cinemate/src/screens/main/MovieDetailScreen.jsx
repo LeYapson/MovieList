@@ -22,6 +22,7 @@ import { WebView } from 'react-native-webview';
 import { getSessionId, isLoggedIn } from '../../services/storageService';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import StreamingProviderItem from '../../components/movies/StreamingProviderItem';
+import { FlatList } from 'react-native';
 
 const { UIManager } = NativeModules;
 
@@ -649,52 +650,6 @@ const MovieDetailScreen = ({ route, navigation }) => {
         </View>
       </Modal>
     </>
-  );
-};
- // test yanisse
-const GenreSearch = ({ movies, searchQuery, theme }) => {
-  const [filteredMovies, setFilteredMovies] = useState(movies);
-
-  React.useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredMovies(movies);
-    } else {
-      const filtered = movies.filter((movie) =>
-        movie.genres.some((genre) =>
-          genre.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-      setFilteredMovies(filtered);
-    }
-  }, [searchQuery, movies]);
-
-  return (
-    <View style={styles.container}>
-      {/* Résultats des films filtrés */}
-      <FlatList
-        data={filteredMovies}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.movieItem}>
-            <Text style={[styles.movieTitle, { color: theme.primary }]}>
-              {item.title}
-            </Text>
-            <View style={styles.genresContainer}>
-              {item.genres.map((genre) => (
-                <View
-                  key={genre.id}
-                  style={[styles.genreTag, { backgroundColor: theme.primary }]}
-                >
-                  <Text style={[styles.genreText, { color: '#fff' }]}>
-                    {genre.name}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      />
-    </View>
   );
 };
 

@@ -12,7 +12,8 @@ import {
   Animated,
   Dimensions,
   StatusBar,
-  Image
+  Image,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
@@ -63,8 +64,62 @@ const InlineMovieCard = ({ movie, onPress }) => {
   );
 };
 
+// Nouveau composant pour le menu déroulant des genres
+const GenreDropdown = React.memo(({ genres, selectedGenres, onToggleGenre, theme, visible, onClose }) => {
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.genreModal, { backgroundColor: theme.card }]}>
+          <View style={styles.genreModalHeader}>
+            <Text style={[styles.genreModalTitle, { color: theme.text }]}>
+              Filtrer par genre
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={theme.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.genreModalList}>
+            {genres.map(genre => (
+              <TouchableOpacity
+                key={genre.id}
+                style={[
+                  styles.genreModalItem,
+                  selectedGenres.includes(genre.id) && { backgroundColor: theme.primary + '20' }
+                ]}
+                onPress={() => onToggleGenre(genre.id)}
+              >
+                <Text style={[styles.genreModalItemText, { color: theme.text }]}>
+                  {genre.name}
+                </Text>
+                {selectedGenres.includes(genre.id) && (
+                  <Ionicons name="checkmark" size={22} color={theme.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          
+          <View style={styles.genreModalFooter}>
+            <TouchableOpacity 
+              style={[styles.genreModalButton, { backgroundColor: theme.primary }]}
+              onPress={onClose}
+            >
+              <Text style={styles.genreModalButtonText}>Appliquer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+});
+
 // Composant pour les filtres (genres) - memoizé
-const GenreFilter = React.memo(({ genres, selectedGenres, onToggleGenre, theme }) => {
+const GenreFilter = React.memo(({ genres, selectedGenres, onToggleGenre, onShowGenreModal, theme }) => {
   const scrollViewRef = useRef();
   
   // Animation d'entrée
@@ -88,28 +143,47 @@ const GenreFilter = React.memo(({ genres, selectedGenres, onToggleGenre, theme }
   
   // useMemo pour éviter des recalculs
   const renderGenres = useMemo(() => {
-    return genres.map(genre => (
-      <TouchableOpacity
-        key={genre.id}
-        style={[
-          styles.genreChip,
-          selectedGenres.includes(genre.id) 
-            ? { backgroundColor: theme.primary } 
-            : { backgroundColor: theme.card }
-        ]}
-        onPress={() => onToggleGenre(genre.id)}
-      >
-        <Text 
-          style={[
-            styles.genreText, 
-            { color: selectedGenres.includes(genre.id) ? '#fff' : theme.text }
-          ]}
+    // Afficher les genres sélectionnés et quelques genres populaires si aucun n'est sélectionné
+    const displayedGenres = selectedGenres.length > 0 
+      ? genres.filter(genre => selectedGenres.includes(genre.id))
+      : genres.slice(0, 6); // Afficher seulement les 6 premiers genres si aucun n'est sélectionné
+    
+    return (
+      <>
+        {displayedGenres.map(genre => (
+          <TouchableOpacity
+            key={genre.id}
+            style={[
+              styles.genreChip,
+              selectedGenres.includes(genre.id) 
+                ? { backgroundColor: theme.primary } 
+                : { backgroundColor: theme.card }
+            ]}
+            onPress={() => onToggleGenre(genre.id)}
+          >
+            <Text 
+              style={[
+                styles.genreText, 
+                { color: selectedGenres.includes(genre.id) ? '#fff' : theme.text }
+              ]}
+            >
+              {genre.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+        
+        {/* Bouton pour afficher tous les genres */}
+        <TouchableOpacity
+          style={[styles.genreChip, { backgroundColor: theme.card }]}
+          onPress={onShowGenreModal}
         >
-          {genre.name}
-        </Text>
-      </TouchableOpacity>
-    ));
-  }, [genres, selectedGenres, theme, onToggleGenre]);
+          <Text style={[styles.genreText, { color: theme.primary }]}>
+            {selectedGenres.length > 0 ? 'Modifier...' : 'Tous les genres...'}
+          </Text>
+        </TouchableOpacity>
+      </>
+    );
+  }, [genres, selectedGenres, theme, onToggleGenre, onShowGenreModal]);
   
   return (
     <Animated.View 
@@ -130,6 +204,73 @@ const GenreFilter = React.memo(({ genres, selectedGenres, onToggleGenre, theme }
         {renderGenres}
       </ScrollView>
     </Animated.View>
+  );
+});
+
+// Nouveau composant pour la recherche par genre
+const GenreSearch = React.memo(({ movies, searchQuery, theme, onSelectMovie }) => {
+  const [filteredMovies, setFilteredMovies] = useState(movies || []);
+  
+  // Filtrer les films par genre en fonction de la recherche
+  useEffect(() => {
+    if (!movies) return;
+    
+    if (searchQuery.trim() === '') {
+      setFilteredMovies(movies);
+    } else {
+      const filtered = movies.filter((movie) =>
+        movie.genres && movie.genres.some((genre) =>
+          genre.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+      setFilteredMovies(filtered);
+    }
+  }, [searchQuery, movies]);
+  
+  // Rendu optimisé pour les éléments de liste
+  const renderItem = useCallback(({ item }) => (
+    <TouchableOpacity 
+      style={[styles.genreSearchItem, { backgroundColor: theme.card }]}
+      onPress={() => onSelectMovie(item.id)}
+    >
+      <View style={styles.genreSearchItemContent}>
+        <Text style={[styles.genreSearchItemTitle, { color: theme.text }]}>
+          {item.title}
+        </Text>
+        <View style={styles.genreSearchItemGenres}>
+          {item.genres && item.genres.map((genre) => (
+            <View 
+              key={genre.id} 
+              style={[styles.genreSearchTag, { backgroundColor: theme.primary + '20' }]}
+            >
+              <Text style={[styles.genreSearchTagText, { color: theme.primary }]}>
+                {genre.name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+    </TouchableOpacity>
+  ), [theme, onSelectMovie]);
+  
+  return (
+    <View style={styles.genreSearchContainer}>
+      {filteredMovies.length > 0 ? (
+        <FlatList
+          data={filteredMovies}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.genreSearchList}
+        />
+      ) : (
+        <View style={styles.genreSearchEmpty}>
+          <Text style={[styles.genreSearchEmptyText, { color: theme.textSecondary }]}>
+            Aucun film trouvé pour ce genre
+          </Text>
+        </View>
+      )}
+    </View>
   );
 });
 
@@ -213,7 +354,10 @@ const SearchScreen = ({ navigation }) => {
   const [currentSort, setCurrentSort] = useState('popularity.desc');
   
   // État pour savoir si c'est une recherche par texte ou une découverte par filtres
-  const [searchMode, setSearchMode] = useState('text'); // 'text' ou 'discover'
+  const [searchMode, setSearchMode] = useState('text'); // 'text', 'discover' ou 'genre'
+  
+  // État pour le modal des genres
+  const [genreModalVisible, setGenreModalVisible] = useState(false);
   
   // Animation pour les filtres
   const filtersHeight = useRef(new Animated.Value(0)).current;
@@ -272,6 +416,9 @@ const SearchScreen = ({ navigation }) => {
         if (searchType === 'text') {
           // Recherche classique par texte
           response = await tmdbService.searchMovies(text, 1);
+        } else if (searchType === 'genre') {
+          // Pour la recherche spécifique par genre (nouveau mode)
+          response = await tmdbService.getMoviesByGenre(genreIds[0]);
         } else {
           // Pour la découverte, adapter aux endpoints disponibles
           if (genreIds.length > 0) {
@@ -310,6 +457,8 @@ const SearchScreen = ({ navigation }) => {
   useEffect(() => {
     if (searchMode === 'text') {
       performSearch(searchQuery, [], currentSort, 'text');
+    } else if (searchMode === 'genre') {
+      performSearch('', selectedGenres, currentSort, 'genre');
     } else {
       performSearch('', selectedGenres, currentSort, 'discover');
     }
@@ -369,6 +518,16 @@ const SearchScreen = ({ navigation }) => {
     ]).start();
   }, [fabScale]);
 
+  // Méthode pour montrer le modal des genres
+  const showGenreModal = useCallback(() => {
+    setGenreModalVisible(true);
+  }, []);
+
+  // Méthode pour cacher le modal des genres
+  const hideGenreModal = useCallback(() => {
+    setGenreModalVisible(false);
+  }, []);
+
   // Changer le mode de recherche - défini avec useCallback
   const toggleSearchMode = useCallback(() => {
     // Animer le FAB
@@ -395,6 +554,10 @@ const SearchScreen = ({ navigation }) => {
           useNativeDriver: false,
         })
       ]).start();
+    } else if (searchMode === 'discover') {
+      // Passer en mode recherche par genre
+      setSearchMode('genre');
+      // Garder les filtres visibles, mais avec un affichage différent
     } else {
       // Revenir en mode recherche par texte
       setSearchMode('text');
@@ -474,7 +637,9 @@ const SearchScreen = ({ navigation }) => {
         <Text style={[styles.emptyStateTitle, { color: theme.text }]}>
           {searchMode === 'text' 
             ? 'Aucun résultat trouvé'
-            : 'Définissez des filtres pour découvrir des films'
+            : searchMode === 'genre'
+              ? 'Aucun film trouvé pour ce genre'
+              : 'Définissez des filtres pour découvrir des films'
           }
         </Text>
         <Text style={[styles.emptyStateMessage, { color: theme.textSecondary }]}>
@@ -503,7 +668,11 @@ const SearchScreen = ({ navigation }) => {
               <TextInput
                 ref={searchInputRef}
                 style={[styles.searchInput, { color: theme.text }]}
-                placeholder="Rechercher un film..."
+                placeholder={
+                  searchMode === 'genre' 
+                    ? "Rechercher par genre..." 
+                    : "Rechercher un film..."
+                }
                 placeholderTextColor={theme.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -532,6 +701,7 @@ const SearchScreen = ({ navigation }) => {
               genres={GENRES} 
               selectedGenres={selectedGenres} 
               onToggleGenre={handleToggleGenre}
+              onShowGenreModal={showGenreModal}
               theme={theme}
             />
             
@@ -548,7 +718,9 @@ const SearchScreen = ({ navigation }) => {
           <Text style={[styles.resultTitle, { color: theme.text }]}>
             {searchMode === 'text' 
               ? (searchQuery ? `Recherche: "${searchQuery}"` : 'Films populaires')
-              : 'Découverte par filtres'
+              : searchMode === 'genre'
+                ? 'Recherche par genre'
+                : 'Découverte par filtres'
             }
           </Text>
           {results.length > 0 && (
@@ -558,32 +730,52 @@ const SearchScreen = ({ navigation }) => {
           )}
         </View>
         
-        {/* Liste des résultats */}
-        {loading && results.length === 0 ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={results}
-            renderItem={renderMovieItem}
-            keyExtractor={keyExtractor}
-            numColumns={2}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.resultsContainer}
-            onEndReached={loadMoreResults}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={ListFooterComponent}
-            ListEmptyComponent={EmptyComponent}
-            
-            // Optimisations de performance
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={8}
-            updateCellsBatchingPeriod={50}
-            windowSize={10}
-            initialNumToRender={10}
+        {/* Modal pour les filtres de genre */}
+        <GenreDropdown
+          genres={GENRES}
+          selectedGenres={selectedGenres}
+          onToggleGenre={handleToggleGenre}
+          theme={theme}
+          visible={genreModalVisible}
+          onClose={hideGenreModal}
+        />
+        
+        {/* Mode recherche par genre */}
+        {searchMode === 'genre' ? (
+          <GenreSearch
+            movies={results}
+            searchQuery={searchQuery}
+            theme={theme}
+            onSelectMovie={navigateToMovieDetail}
           />
+        ) : (
+          // Liste des résultats pour les autres modes
+          loading && results.length === 0 ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={results}
+              renderItem={renderMovieItem}
+              keyExtractor={keyExtractor}
+              numColumns={2}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.resultsContainer}
+              onEndReached={loadMoreResults}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={ListFooterComponent}
+              ListEmptyComponent={EmptyComponent}
+              
+              // Optimisations de performance
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={8}
+              updateCellsBatchingPeriod={50}
+              windowSize={10}
+              initialNumToRender={10}
+            />
+          )
         )}
         
         {/* Bouton flottant (FAB) pour les filtres */}
@@ -597,18 +789,18 @@ const SearchScreen = ({ navigation }) => {
             style={[
               styles.fab, 
               { 
-                backgroundColor: searchMode === 'discover' ? theme.primary : '#fff',
+                backgroundColor: searchMode !== 'text' ? theme.primary : '#fff',
                 borderColor: theme.primary,
-                borderWidth: searchMode === 'discover' ? 0 : 1,
+                borderWidth: searchMode !== 'text' ? 0 : 1,
               }
             ]}
             onPress={toggleSearchMode}
             activeOpacity={0.8}
           >
             <Ionicons 
-              name={searchMode === 'discover' ? 'search' : 'options'} 
+              name={searchMode === 'text' ? 'options' : searchMode === 'genre' ? 'search' : 'film'} 
               size={24} 
-              color={searchMode === 'discover' ? '#fff' : theme.primary} 
+              color={searchMode !== 'text' ? '#fff' : theme.primary} 
             />
           </TouchableOpacity>
         </Animated.View>
@@ -656,7 +848,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   genreFilterContainer: {
-    marginBottom: 12,
+    marginBottom: 12
   },
   genreScrollContent: {
     paddingVertical: 8,
