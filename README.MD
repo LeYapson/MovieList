@@ -169,47 +169,39 @@ MIT License - voir [LICENSE.md](LICENSE.md)
 ## 📱 Screenshots
 
 ### Écran de Connexion
-![Écran de Connexion](./screenshots/login.png)
+<img src="./screenshots/login.png" alt="Écran de Connexion" width="300"/>
 
 ### Écran d'Accueil
-![Écran d'Accueil](./screenshots/home.png)
+<img src="./screenshots/home.png" alt="Écran d'Accueil" width="300"/>
 
 ### Écran d'Accueil (darkmode)
-![Écran d'Accueil](./screenshots/homeDark.png)
+<img src="./screenshots/homeDark.png" alt="Écran d'Accueil (darkmode)" width="300"/>
 
 ### Détails du Film
-![Détails du Film](./screenshots/movieDetails.png)
-![Détails du Film 2](./screenshots/movieDetails2.png)
+<img src="./screenshots/movieDetails.png" alt="Détails du Film" width="300"/>
+<img src="./screenshots/movieDetails2.png" alt="Détails du Film 2" width="300"/>
 
 ### Détails du Film (darkmode)
-![Détails du Film](./screenshots/movieDetailsDark.png)
-![Détails du Film 2](./screenshots/movieDetails2Dark.png)
+<img src="./screenshots/movieDetailsDark.png" alt="Détails du Film (darkmode)" width="300"/>
+<img src="./screenshots/movieDetails2Dark.png" alt="Détails du Film 2 (darkmode)" width="300"/>
 
 ### Profil Utilisateur
-![Profil Utilisateur](./screenshots/profil.png)
-
-### Profil Utilisateur (darkmode)
-![Profil Utilisateur](./screenshots/profilDark.png)
+<img src="./screenshots/profil.png" alt="Profil Utilisateur" width="300"/>
+<img src="./screenshots/profilDark.png" alt="Profil Utilisateur (darkmode)" width="300"/>
 
 ### Recherche
-![Recherche](./screenshots/search.png)
-
-### Recherche (darkmode)
-![Recherche](./screenshots/searchDark.png)
+<img src="./screenshots/search.png" alt="Recherche" width="300"/>
+<img src="./screenshots/searchDark.png" alt="Recherche (darkmode)" width="300"/>
 
 ### Watchlist
-![Watchlist](./screenshots/watchlist.png)
-![Watchlist 2](./screenshots/watchlist2.png)
+<img src="./screenshots/watchlist.png" alt="Watchlist" width="300"/>
+<img src="./screenshots/watchlist2.png" alt="Watchlist 2" width="300"/>
+<img src="./screenshots/watchlistDark.png" alt="Watchlist (darkmode)" width="300"/>
+<img src="./screenshots/watchlist2Dark.png" alt="Watchlist 2 (darkmode)" width="300"/>
 
-### Watchlist (darkmode)
-![Watchlist](./screenshots/watchlistDark.png)
-![Watchlist 2](./screenshots/watchlist2Dark.png)
-
-### paramètres
-![paramètres](./screenshots/settings.png)
-
-### paramètres (darkmode)
-![paramètres](./screenshots/settingsDark.png)
+### Paramètres
+<img src="./screenshots/settings.png" alt="Paramètres" width="300"/>
+<img src="./screenshots/settingsDark.png" alt="Paramètres (darkmode)" width="300"/>
 
 ## 🤝 Contribution
 
