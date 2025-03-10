@@ -53,6 +53,7 @@ cd cinemate
 
 # Installer les dépendances
 npm install
+npm install react-native-dotenv
 
 # Configurer les variables d'environnement
 cp .env.example .env
@@ -167,7 +168,48 @@ MIT License - voir [LICENSE.md](LICENSE.md)
 
 ## 📱 Screenshots
 
-[À venir]
+### Écran de Connexion
+![Écran de Connexion](./screenshots/login.png)
+
+### Écran d'Accueil
+![Écran d'Accueil](./screenshots/home.png)
+
+### Écran d'Accueil (darkmode)
+![Écran d'Accueil](./screenshots/homeDark.png)
+
+### Détails du Film
+![Détails du Film](./screenshots/movieDetails.png)
+![Détails du Film 2](./screenshots/movieDetails2.png)
+
+### Détails du Film (darkmode)
+![Détails du Film](./screenshots/movie_detailsDark.png)
+![Détails du Film 2](./screenshots/movie_details2Dark.png)
+
+### Profil Utilisateur
+![Profil Utilisateur](./screenshots/profil.png)
+
+### Profil Utilisateur (darkmode)
+![Profil Utilisateur](./screenshots/profilDark.png)
+
+### Recherche
+![Recherche](./screenshots/search.png)
+
+### Recherche (darkmode)
+![Recherche](./screenshots/searchDark.png)
+
+### Watchlist
+![Watchlist](./screenshots/watchlist.png)
+![Watchlist 2](./screenshots/watchlist2.png)
+
+### Watchlist (darkmode)
+![Watchlist](./screenshots/watchlistDark.png)
+![Watchlist 2](./screenshots/watchlist2Dark.png)
+
+### paramètres
+![paramètres](./screenshots/settings.png)
+
+### paramètres (darkmode)
+![paramètres](./screenshots/settingsDark.png)
 
 ## 🤝 Contribution
 
