@@ -10,7 +10,7 @@ const USER_PREFERENCES_KEY = 'user_preferences';
 // Méthodes existantes - conservées avec compatibilité
 export const storeSessionId = async (sessionId) => {
   try {
-    await AsyncStorage.setItem(SESSION_ID_KEY, sessionId);
+    await AsyncStorage.setItem(SESSION_ID_KEY, sessionId); // Utiliser SESSION_ID_KEY
   } catch (error) {
     console.error('Erreur stockage sessionId:', error);
   }
@@ -18,7 +18,7 @@ export const storeSessionId = async (sessionId) => {
 
 export const getSessionId = async () => {
   try {
-    const sessionId = await AsyncStorage.getItem('session_id');
+    const sessionId = await AsyncStorage.getItem(SESSION_ID_KEY); // Utiliser SESSION_ID_KEY
     console.log('Recovered Session ID:', sessionId); // Log pour vérifier le sessionId récupéré
     return sessionId;
   } catch (error) {
