@@ -1,99 +1,24 @@
 // src/screens/auth/SignupScreen.jsx
-import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text, ScrollView, Alert, TouchableOpacity, Linking, Image } from 'react-native';
 import { Button } from '../../components/ui/Button';
-import { createAccount } from '../../services/authService';
 import { useTheme } from '../../context/ThemeContext';
 
 const SignupScreen = ({ navigation }) => {
  const { theme } = useTheme();
- const [isLoading, setIsLoading] = useState(false);
- const [formData, setFormData] = useState({
-   username: '',
-   email: '',
-   password: '',
-   confirmPassword: '',
- });
- const [errors, setErrors] = useState({});
 
- const validateForm = () => {
-   const newErrors = {};
-
-   // Validation du nom d'utilisateur
-   if (!formData.username.trim()) {
-     newErrors.username = 'Nom d\'utilisateur requis';
-   } else if (formData.username.length < 3) {
-     newErrors.username = 'Le nom d\'utilisateur doit faire au moins 3 caractères';
-   }
-
-   // Validation de l'email
-   if (!formData.email.trim()) {
-     newErrors.email = 'Email requis';
-   } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-     newErrors.email = 'Format d\'email invalide';
-   }
-
-   // Validation du mot de passe
-   if (!formData.password) {
-     newErrors.password = 'Mot de passe requis';
-   } else if (formData.password.length < 8) {
-     newErrors.password = 'Le mot de passe doit faire au moins 8 caractères';
-   } else if (!/\d/.test(formData.password)) {
-     newErrors.password = 'Le mot de passe doit contenir au moins un chiffre';
-   }
-
-   // Validation de la confirmation du mot de passe
-   if (formData.password !== formData.confirmPassword) {
-     newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-   }
-
-   setErrors(newErrors);
-   return Object.keys(newErrors).length === 0;
+ const openTMDBSignupPage = () => {
+   const url = 'https://www.themoviedb.org/signup';
+   Linking.canOpenURL(url)
+     .then(supported => {
+       if (supported) {
+         Linking.openURL(url);
+       } else {
+         Alert.alert("Erreur", "Impossible d'ouvrir la page d'inscription TMDB");
+       }
+     })
+     .catch(err => console.error('An error occurred', err));
  };
-
- const handleSignup = async () => {
-   if (!validateForm()) return;
-
-   setIsLoading(true);
-   try {
-     await createAccount(formData.username, formData.email, formData.password);
-     Alert.alert(
-       'Succès',
-       'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.',
-       [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-     );
-   } catch (error) {
-    console.error('Signup Error:', error);
-    Alert.alert(
-      'Erreur de création de compte',
-      `Détails: ${error.message}`
-    );
-   } finally {
-     setIsLoading(false);
-   }
- };
-
- const renderInput = (field, placeholder, secureTextEntry = false, keyboardType = 'default') => (
-   <View style={styles.inputContainer}>
-     <TextInput
-       style={[
-         styles.input,
-         { backgroundColor: theme.card, color: theme.text },
-         errors[field] && styles.inputError
-       ]}
-       placeholder={placeholder}
-       placeholderTextColor={theme.textSecondary}
-       value={formData[field]}
-       onChangeText={(text) => setFormData({...formData, [field]: text})}
-       secureTextEntry={secureTextEntry}
-       autoCapitalize="none"
-       keyboardType={keyboardType}
-     />
-     {errors[field] && (
-       <Text style={styles.errorText}>{errors[field]}</Text>
-     )}
-   </View>
- );
 
  return (
    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -105,24 +30,41 @@ const SignupScreen = ({ navigation }) => {
      </View>
 
      <View style={styles.formContainer}>
-       {renderInput('username', 'Nom d\'utilisateur')}
-       {renderInput('email', 'Email', false, 'email-address')}
-       {renderInput('password', 'Mot de passe', true)}
-       {renderInput('confirmPassword', 'Confirmer le mot de passe', true)}
+       <View style={styles.infoBox}>
+         <Text style={[styles.infoText, { color: theme.text }]}>
+           Cinemate utilise The Movie Database (TMDB) pour gérer les comptes utilisateurs.
+           Pour vous inscrire, vous serez redirigé vers le site TMDB.
+         </Text>
+       </View>
+
+       <View style={styles.tmdbLogoContainer}>
+         <Image 
+           source={{ uri: 'https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg' }} 
+           style={styles.tmdbLogo}
+           resizeMode="contain"
+         />
+       </View>
 
        <Button
-         title={isLoading ? 'Création en cours...' : 'S\'inscrire'}
-         onPress={handleSignup}
+         title="S'inscrire sur TMDB"
+         onPress={openTMDBSignupPage}
          variant="primary"
-         disabled={isLoading}
        />
-
+       
        <Button
-         title="Déjà un compte ? Se connecter"
+         title="Déjà un compte TMDB ? Se connecter"
          onPress={() => navigation.navigate('Login')}
          variant="secondary"
-         disabled={isLoading}
        />
+       
+       <TouchableOpacity 
+         style={styles.helpLink} 
+         onPress={() => Linking.openURL('https://www.themoviedb.org/about')}
+       >
+         <Text style={[styles.helpLinkText, { color: theme.accent }]}>
+           Qu'est-ce que TMDB ?
+         </Text>
+       </TouchableOpacity>
      </View>
    </ScrollView>
  );
@@ -149,25 +91,33 @@ const styles = StyleSheet.create({
    padding: 20,
    gap: 15,
  },
- inputContainer: {
-   marginBottom: 15,
- },
- input: {
+ infoBox: {
+   backgroundColor: 'rgba(0,0,0,0.05)',
    padding: 15,
    borderRadius: 8,
+   marginBottom: 20,
+ },
+ infoText: {
+   fontSize: 15,
+   lineHeight: 22,
+ },
+ tmdbLogoContainer: {
+   alignItems: 'center',
+   marginVertical: 20,
+ },
+ tmdbLogo: {
+   width: 150,
+   height: 150,
+ },
+ helpLink: {
+   alignItems: 'center',
+   marginTop: 20,
+   padding: 10,
+ },
+ helpLinkText: {
    fontSize: 16,
-   borderWidth: 1,
-   borderColor: '#ddd',
- },
- inputError: {
-   borderColor: '#FF3B30',
-   borderWidth: 1,
- },
- errorText: {
-   color: '#FF3B30',
-   fontSize: 12,
-   marginTop: 5,
-   marginLeft: 5,
+   fontWeight: '500',
+   textDecorationLine: 'underline',
  }
 });
 
