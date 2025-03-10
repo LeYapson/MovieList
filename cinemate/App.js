@@ -25,4 +25,6 @@ export default function App() {
       <AppNavigator />
     </ThemeProvider>
   );
+
+  
 }

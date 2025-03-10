@@ -344,11 +344,18 @@ const tmdbService = {
   },
 };
 
-// Récupérer les détails d'un film avec ses genres
-async function getMovieWithGenres(movieId) {
-  const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}&language=fr-FR`);
-  const movie = await response.json();
-  return movie; // movie.genres contient les genres du film
-}
+export const fetchGenres = async (language = 'fr-FR') => {
+  const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=${language}`);
+  const data = await response.json();
+  return data.genres;
+};
+
+// Récupérer les films d’un genre spécifique
+export const fetchMoviesByGenre = async (genreId, language = 'fr-FR') => {
+  const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&language=${language}`);
+  const data = await response.json();
+  return data.results;
+};
+
 
 export default tmdbService;
