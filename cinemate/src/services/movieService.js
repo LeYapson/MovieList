@@ -1,7 +1,7 @@
 // src/services/movieService.js
 import axios from 'axios';
+import { API_KEY} from '@env';
 
-const API_KEY = 'b5b127c27b05cc748d56999e632af5dc';
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 // Films populaires

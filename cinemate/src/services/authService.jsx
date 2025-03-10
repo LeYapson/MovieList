@@ -1,8 +1,8 @@
 // src/services/authService.jsx
 import axios from 'axios';
 import { storeSessionId, saveUsername, saveAccountId } from './storageService';
+import { API_KEY} from '@env';
 
-const API_KEY = "b5b127c27b05cc748d56999e632af5dc";
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 // Créer un nouveau token de requête
