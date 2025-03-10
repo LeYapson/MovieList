@@ -182,8 +182,8 @@ MIT License - voir [LICENSE.md](LICENSE.md)
 ![Détails du Film 2](./screenshots/movieDetails2.png)
 
 ### Détails du Film (darkmode)
-![Détails du Film](./screenshots/moviedetailsDark.png)
-![Détails du Film 2](./screenshots/moviedetails2Dark.png)
+![Détails du Film](./screenshots/movieDetailsDark.png)
+![Détails du Film 2](./screenshots/movieDetails2Dark.png)
 
 ### Profil Utilisateur
 ![Profil Utilisateur](./screenshots/profil.png)
