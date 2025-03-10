@@ -1,0 +1,56 @@
+/* Conteneur pour les genres d'un film */
+.movie-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  
+  /* Style pour chaque tag de genre */
+  .genre-tag {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    display: inline-block;
+    text-transform: capitalize;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .genre-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    cursor: default;
+  }
+  
+  /* Style pour les genres cliquables (dans les filtres) */
+  .clickable-genre {
+    cursor: pointer;
+    display: inline-block;
+    margin: 4px;
+  }
+  
+  .clickable-genre:hover .genre-tag {
+    transform: translateY(-2px);
+    filter: brightness(110%);
+  }
+  
+  /* Conteneur pour tous les genres (dans un filtre) */
+  .all-genres-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+  }
+  
+  /* États de chargement et d'erreur */
+  .genres-loading, .genres-error, .no-genres {
+    font-style: italic;
+    color: #757575;
+    margin: 5px 0;
+  }
