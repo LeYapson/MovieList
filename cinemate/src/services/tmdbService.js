@@ -344,4 +344,11 @@ const tmdbService = {
   },
 };
 
+// Récupérer les détails d'un film avec ses genres
+async function getMovieWithGenres(movieId) {
+  const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}&language=fr-FR`);
+  const movie = await response.json();
+  return movie; // movie.genres contient les genres du film
+}
+
 export default tmdbService;
