@@ -1,7 +1,7 @@
 // src/services/authService.jsx
 import axios from 'axios';
 import { storeSessionId, saveUsername, saveAccountId } from './storageService';
-import { API_KEY} from '@env';
+import { API_KEY } from '@env';
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 

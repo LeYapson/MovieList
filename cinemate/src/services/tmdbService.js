@@ -1,6 +1,6 @@
 // src/services/tmdbService.js
 import axios from 'axios';
-import { API_KEY} from '@env';
+import { API_KEY } from '@env';
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 
