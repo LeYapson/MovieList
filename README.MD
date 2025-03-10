@@ -172,36 +172,60 @@ MIT License - voir [LICENSE.md](LICENSE.md)
 <img src="./screenshots/login.png" alt="Écran de Connexion" width="300"/>
 
 ### Écran d'Accueil
-<img src="./screenshots/home.png" alt="Écran d'Accueil" width="300"/>
-
-### Écran d'Accueil (darkmode)
-<img src="./screenshots/homeDark.png" alt="Écran d'Accueil (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/home.png" alt="Écran d'Accueil" width="300"/></td>
+    <td><img src="./screenshots/homeDark.png" alt="Écran d'Accueil (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ### Détails du Film
-<img src="./screenshots/movieDetails.png" alt="Détails du Film" width="300"/>
-<img src="./screenshots/movieDetails2.png" alt="Détails du Film 2" width="300"/>
-
-### Détails du Film (darkmode)
-<img src="./screenshots/movieDetailsDark.png" alt="Détails du Film (darkmode)" width="300"/>
-<img src="./screenshots/movieDetails2Dark.png" alt="Détails du Film 2 (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/movieDetails.png" alt="Détails du Film" width="300"/></td>
+    <td><img src="./screenshots/movieDetails2.png" alt="Détails du Film 2" width="300"/></td>
+  </tr>
+  <tr>
+    <td><img src="./screenshots/movieDetailsDark.png" alt="Détails du Film (darkmode)" width="300"/></td>
+    <td><img src="./screenshots/movieDetails2Dark.png" alt="Détails du Film 2 (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ### Profil Utilisateur
-<img src="./screenshots/profil.png" alt="Profil Utilisateur" width="300"/>
-<img src="./screenshots/profilDark.png" alt="Profil Utilisateur (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/profil.png" alt="Profil Utilisateur" width="300"/></td>
+    <td><img src="./screenshots/profilDark.png" alt="Profil Utilisateur (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ### Recherche
-<img src="./screenshots/search.png" alt="Recherche" width="300"/>
-<img src="./screenshots/searchDark.png" alt="Recherche (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/search.png" alt="Recherche" width="300"/></td>
+    <td><img src="./screenshots/searchDark.png" alt="Recherche (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ### Watchlist
-<img src="./screenshots/watchlist.png" alt="Watchlist" width="300"/>
-<img src="./screenshots/watchlist2.png" alt="Watchlist 2" width="300"/>
-<img src="./screenshots/watchlistDark.png" alt="Watchlist (darkmode)" width="300"/>
-<img src="./screenshots/watchlist2Dark.png" alt="Watchlist 2 (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/watchlist.png" alt="Watchlist" width="300"/></td>
+    <td><img src="./screenshots/watchlist2.png" alt="Watchlist 2" width="300"/></td>
+  </tr>
+  <tr>
+    <td><img src="./screenshots/watchlistDark.png" alt="Watchlist (darkmode)" width="300"/></td>
+    <td><img src="./screenshots/watchlist2Dark.png" alt="Watchlist 2 (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ### Paramètres
-<img src="./screenshots/settings.png" alt="Paramètres" width="300"/>
-<img src="./screenshots/settingsDark.png" alt="Paramètres (darkmode)" width="300"/>
+<table>
+  <tr>
+    <td><img src="./screenshots/settings.png" alt="Paramètres" width="300"/></td>
+    <td><img src="./screenshots/settingsDark.png" alt="Paramètres (darkmode)" width="300"/></td>
+  </tr>
+</table>
 
 ## 🤝 Contribution
 
