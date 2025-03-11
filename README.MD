@@ -77,7 +77,6 @@ npx expo start
 ### Auth
 - Login
 - Register
-- Reset Password
 
 ### Main
 - Home (Tendances, Populaires)
@@ -85,6 +84,7 @@ npx expo start
 - Movie Details
 - Profile
 - Watchlist
+- settings
 
 ## 🎨 Design System
 
