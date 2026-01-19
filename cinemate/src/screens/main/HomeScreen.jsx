@@ -1,4 +1,6 @@
-// src/screens/main/HomeScreen.jsx
+// Position: cinemate/src/screens/main/HomeScreen.jsx
+// MODIFICATIONS: Ajout de SafeAreaView pour respecter les zones sûres de l'écran
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   View, 
@@ -13,6 +15,7 @@ import {
   TouchableOpacity,
   Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MovieList from '../../components/movies/MovieList';
 import tmdbService from '../../services/tmdbService';
 import { useTheme } from '../../context/ThemeContext';
@@ -80,6 +83,8 @@ const PulseLoader = ({ color }) => {
     </Animated.View>
   );
 };
+
+// ... (gardez tous les autres composants PulseLoader, AnimatedHeader, FeaturedMovie identiques)
 
 // Composant d'en-tête animé
 const AnimatedHeader = ({ theme }) => {
@@ -276,7 +281,6 @@ const HomeScreen = ({ navigation }) => {
     try {
       const response = await tmdbService.getPopularMovies();
       if (response.results && response.results.length > 0) {
-        // Prenez un film aléatoire parmi les 5 premiers
         const randomIndex = Math.floor(Math.random() * Math.min(5, response.results.length));
         setFeaturedMovie(response.results[randomIndex]);
       }
@@ -303,7 +307,6 @@ const HomeScreen = ({ navigation }) => {
       
       const category = CATEGORIES.find(c => c.id === categoryId);
       
-      // Enregistrer position actuelle
       if (flatListRef.current) {
         flatListRef.current.getScrollOffset && flatListRef.current.getScrollOffset((offset) => {
           scrollPosition.current = offset;
@@ -317,7 +320,6 @@ const HomeScreen = ({ navigation }) => {
         [categoryId]: response.results
       }));
       
-      // Déclencher l'animation
       animateCategory(categoryId);
     } catch (error) {
       console.error(`Erreur chargement catégorie ${categoryId}:`, error);
@@ -330,7 +332,6 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Restaurer position après mise à jour
   useEffect(() => {
     if (flatListRef.current && scrollPosition.current > 0 && !isFirstRender.current) {
       setTimeout(() => {
@@ -347,21 +348,15 @@ const HomeScreen = ({ navigation }) => {
     scrollPosition.current = event.nativeEvent.contentOffset.y;
   };
 
-  // Gérer les éléments visibles
   const onViewableItemsChanged = useCallback(({ viewableItems }) => {
     const visibleIds = viewableItems.map(item => item.item.id);
     lastVisibleItems.current = visibleIds;
     
-    // Charger toutes les catégories visibles
     visibleIds.forEach(id => {
       loadCategory(id);
     });
-    
-    // Ne plus décharger les catégories non visibles pour éviter les problèmes de rechargement
-    // lors du défilement vers le haut
   }, [loadingCategories]);
 
-  // Rendu du header avec film en vedette
   const renderHeader = () => {
     return (
       <>
@@ -381,10 +376,8 @@ const HomeScreen = ({ navigation }) => {
     const isLoading = loadingCategories.has(item.id);
     const movies = moviesByCategory[item.id] || [];
     
-    // Initialiser animations si nécessaire
     initAnimations(item.id);
     
-    // Créer des styles animés
     const animatedStyle = {
       opacity: fadeAnims.current[item.id],
       transform: [
@@ -393,7 +386,6 @@ const HomeScreen = ({ navigation }) => {
       ]
     };
     
-    // Si la catégorie n'est pas chargée et n'est pas en cours de chargement, la charger
     if (!movies.length && !isLoading) {
       loadCategory(item.id);
     }
@@ -432,8 +424,8 @@ const HomeScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
-      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
+    <SafeAreaView style={[styles.mainContainer, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
       
       <FlatList
         ref={flatListRef}
@@ -457,7 +449,7 @@ const HomeScreen = ({ navigation }) => {
         }}
         ListEmptyComponent={renderEmptyList}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -469,7 +461,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingTop: StatusBar.currentHeight || 0,
     paddingBottom: 24,
   },
   header: {

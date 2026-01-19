@@ -1,4 +1,4 @@
-// src/navigation/AppNavigator.jsx
+// Position: cinemate/src/navigation/AppNavigator.jsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import MovieDetailScreen from '../screens/main/MovieDetailScreen';
 import ActorDetailScreen from '../screens/main/ActorDetailScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -23,6 +24,7 @@ import SettingsScreen from '../screens/main/SettingsScreen';
 const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -33,8 +35,8 @@ const TabNavigator = () => {
         headerTintColor: theme.text,
         tabBarStyle: {
           backgroundColor: theme.tabBar,
-          paddingBottom: 5,
-          height: 55,
+          paddingBottom: insets.bottom,
+          height: 55 + insets.bottom,
           borderTopColor: theme.border,
         },
         tabBarActiveTintColor: theme.primary,
