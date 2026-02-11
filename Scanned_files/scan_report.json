@@ -1,0 +1,171 @@
+{
+  "last_sync": "2026-02-11 09:55:45",
+  "scan_summary": {
+    "total_files": 32,
+    "mock_files_count": 0,
+    "other_files_count": 32
+  },
+  "mock_data_files": [],
+  "project_files": [
+    {
+      "original_path": "project-scanner.py",
+      "flat_name": "project-scanner.py",
+      "extension": ".py"
+    },
+    {
+      "original_path": "cinemate\\.env",
+      "flat_name": "cinemate_.env",
+      "extension": ""
+    },
+    {
+      "original_path": "cinemate\\.gitignore",
+      "flat_name": "cinemate_.gitignore",
+      "extension": ""
+    },
+    {
+      "original_path": "cinemate\\App.js",
+      "flat_name": "cinemate_App.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\babel.config.js",
+      "flat_name": "cinemate_babel.config.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\index.js",
+      "flat_name": "cinemate_index.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\metro.config.js",
+      "flat_name": "cinemate_metro.config.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\package.json",
+      "flat_name": "cinemate_package.json",
+      "extension": ".json"
+    },
+    {
+      "original_path": "cinemate\\src\\components\\movies\\MovieCard.jsx",
+      "flat_name": "cinemate_src_components_movies_MovieCard.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\components\\movies\\MovieList.jsx",
+      "flat_name": "cinemate_src_components_movies_MovieList.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\components\\movies\\StreamingProviderItem.jsx",
+      "flat_name": "cinemate_src_components_movies_StreamingProviderItem.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\components\\movies\\VisibilityWrapper.jsx",
+      "flat_name": "cinemate_src_components_movies_VisibilityWrapper.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\components\\ui\\Button.jsx",
+      "flat_name": "cinemate_src_components_ui_Button.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\context\\AuthContext.js",
+      "flat_name": "cinemate_src_context_AuthContext.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\context\\ThemeContext.js",
+      "flat_name": "cinemate_src_context_ThemeContext.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\hooks\\useVisibilityManager.js",
+      "flat_name": "cinemate_src_hooks_useVisibilityManager.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\navigation\\AppNavigator.jsx",
+      "flat_name": "cinemate_src_navigation_AppNavigator.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\auth\\LoginScreen.jsx",
+      "flat_name": "cinemate_src_screens_auth_LoginScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\auth\\SignupScreen.jsx",
+      "flat_name": "cinemate_src_screens_auth_SignupScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\ActorDetailScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_ActorDetailScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\HomeScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_HomeScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\MovieDetailScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_MovieDetailScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\ProfileScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_ProfileScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\SearchScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_SearchScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\SettingsScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_SettingsScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\screens\\main\\WatchlistScreen.jsx",
+      "flat_name": "cinemate_src_screens_main_WatchlistScreen.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\services\\authService.jsx",
+      "flat_name": "cinemate_src_services_authService.jsx",
+      "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\services\\movieService.js",
+      "flat_name": "cinemate_src_services_movieService.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\services\\storageService.js",
+      "flat_name": "cinemate_src_services_storageService.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\services\\tmdbService.js",
+      "flat_name": "cinemate_src_services_tmdbService.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\theme\\colors.js",
+      "flat_name": "cinemate_src_theme_colors.js",
+      "extension": ".js"
+    },
+    {
+      "original_path": "cinemate\\src\\utils\\streamingUtils.js",
+      "flat_name": "cinemate_src_utils_streamingUtils.js",
+      "extension": ".js"
+    }
+  ]
+}
