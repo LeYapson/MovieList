@@ -1,4 +1,4 @@
-// Configuration Babel pour React Native avec gestion des variables d'environnement
+// SOLUTION RAPIDE - Erreur "API_BASE_URL was not present in allowlist"
 // Position: cinemate/babel.config.js
 
 module.exports = function(api) {
@@ -9,12 +9,11 @@ module.exports = function(api) {
       ['module:react-native-dotenv', {
         moduleName: '@env',
         path: '.env',
-        // Lister explicitement les variables autorisées pour plus de sécurité
         allowlist: [
-          'API_KEY',
-          'TMDB_DEFAULT_USERNAME',
-          'TMDB_DEFAULT_PASSWORD',
-          'AUTO_LOGIN'
+          'API_BASE_URL',
+          'TMDB_API_KEY',
+          'TMDB_TECHNICAL_USERNAME',
+          'TMDB_TECHNICAL_PASSWORD'
         ],
         safe: false,
         allowUndefined: true

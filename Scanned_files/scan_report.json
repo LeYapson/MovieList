@@ -1,9 +1,9 @@
 {
-  "last_sync": "2026-02-11 10:07:14",
+  "last_sync": "2026-02-11 11:13:23",
   "scan_summary": {
-    "total_files": 32,
+    "total_files": 33,
     "mock_files_count": 0,
-    "other_files_count": 32
+    "other_files_count": 33
   },
   "mock_data_files": [],
   "project_files": [
@@ -136,6 +136,11 @@
       "original_path": "cinemate\\src\\screens\\main\\WatchlistScreen.jsx",
       "flat_name": "cinemate_src_screens_main_WatchlistScreen.jsx",
       "extension": ".jsx"
+    },
+    {
+      "original_path": "cinemate\\src\\services\\apiService.js",
+      "flat_name": "cinemate_src_services_apiService.js",
+      "extension": ".js"
     },
     {
       "original_path": "cinemate\\src\\services\\authService.jsx",
